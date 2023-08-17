@@ -102,6 +102,16 @@
   )
 }
 
+#let margin-lines(stroke: gray + 0.5pt) = {
+  locate(loc => {
+    let r-margin = margin-note-defaults.at(loc).margin-right
+    let l-margin = margin-note-defaults.at(loc).margin-left
+    place(dx: -2%, rect(height: 100%, width: 104%, stroke: (left: stroke, right: stroke)))
+
+    // absolute-place(dx: 100% - l-margin, line(end: (0%, 100%)))
+  })
+}
+
 #let _path-from-diffs(start: (0pt, 0pt), ..diffs) = {
     let diffs = diffs.pos()
     let out-path = (start, )
