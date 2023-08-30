@@ -34,11 +34,21 @@
   color: black,
   width: 100cm,
   height: 100cm,
-  spacing: 2cm,
+  spacing: none,
+  divisions: none,
   relative: true,
 ) = {
   // Unfortunately an int cannot be constructed from a length, so get it through a
   // hacky method of converting to a string then an int
+  if spacing == none and divisions == none {
+    panic("Either `spacing` or `divisions` must be specified")
+  }
+  if spacing != none and divisions != none {
+    panic("Only one of `spacing` or `divisions` can be specified")
+  }
+  if divisions != none {
+    spacing = calc.min(width, height)/divisions
+  }
   let to-int(amt) = int(float(repr(amt.abs).slice(0, -2)))
   let x-spacing = spacing
   let y-spacing = spacing
@@ -82,22 +92,28 @@
   })
 }
 
+#let set-margin-note-defaults(..defaults) = {
+  margin-note-defaults.update(old => {
+    for (key, value) in defaults.named().pairs() {
+      old.insert(key, value)
+    }
+    old
+  })
+}
+
 #let set-page-properties(margin-right: 0pt, margin-left: 0pt, ..kwargs) = {
   let kwargs = kwargs.named()
   // Wrapping in "place" prevents a linebreak from adjusting
   // the content
   place(
     layout(layout-size => {
-      margin-note-defaults.update(old-kwargs => {
-        old-kwargs.insert("margin-right", margin-right)
-        old-kwargs.insert("margin-left", margin-left)
-        old-kwargs.insert("page-width", layout-size.width)
-
-        for (kw, val) in kwargs.pairs() {
-          old-kwargs.insert(kw, val)
-        }
-        old-kwargs
-      })
+      let update-dict = (
+        margin-right: margin-right, margin-left: margin-left, page-width: layout-size.width,
+      )
+      for (kw, val) in kwargs.pairs() {
+        update-dict.insert(kw, val)
+      }
+      set-margin-note-defaults(..update-dict)
     })
   )
 }
