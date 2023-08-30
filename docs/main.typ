@@ -62,11 +62,16 @@ What about absolutely positining something regardless of margin and relative loc
 #code-example(
 "#absolute-place(
   dx: dx, dy: dy,
-  rect(fill: white, stroke: red, width: 1in, [content])
+  rect(
+    fill: green.lighten(60%),
+    radius: 0.5em,
+    width: 2.25in,
+    [content]
+  )
 )"
 )
 
-#let (dx, dy) = (5in, 81%)
+#let (dx, dy) = (3.5in, 78%)
 #absolute-place(
   dx: dx,
   dy: dy,
