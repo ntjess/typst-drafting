@@ -1,20 +1,32 @@
-#let pos-tracker = state("pos", none)
+#let loc-tracker = state("loc-tracker", none)
 #let margin-note-defaults = state(
   "margin-note-defaults", (margin-right: 0in, margin-left: 0in, stroke: red, side: right, page-width: none, hidden: false)
 )
+#let note-descent = state("note-descent", (left: 0pt, right: 0pt))
+
+#let _run-func-on-first-loc(func) = {
+  // Some placements are determined by locations relative to a fixed point. However, typst
+  // will automatically re-evaluate that computation several times, since the usage
+  // of that computation will change where an element is placed (and therefore update its
+  // location, and so on). Get around this with a state that only checks for the first
+  // update, then ignores all subsequent updates
+  locate(loc => {
+    let use-loc = loc
+    if loc-tracker.at(loc) != none {
+      use-loc = loc-tracker.at(loc)
+    } else {
+      loc-tracker.update(loc)
+    }
+    func(use-loc)
+  })
+  loc-tracker.update(none)
+}
 
 #let absolute-place(dx: 0em, dy: 0em, content) = {
-  locate(loc => {
+  _run-func-on-first-loc(loc => {
     let pos = loc.position()
-    if pos-tracker.at(loc) != none {
-      pos = pos-tracker.at(loc)
-    } else {
-      pos = loc.position()
-      pos-tracker.update(pos)
-    }
     place(dx: -pos.x + dx, dy: -pos.y + dy, content)
   })
-  pos-tracker.update(none)
 }
 
 #let _calc-text-resize-ratio(width, spacing, styles) = {
@@ -147,6 +159,18 @@
   page-width/100
 }
 
+#let _update-descent(side, dy, loc, note-rect) = {
+  style(styles => {
+    let height = measure(note-rect, styles).height
+    // let note-y = loc.position().y
+    let dy = measure(v(dy + height), styles).height + loc.position().y
+    note-descent.update(old => {
+      old.insert(side, calc.max(dy, old.at(side)))
+      old
+    })
+  })
+}
+
 #let _margin-note-right(body, stroke, dy, anchor-x, width, loc) = {
   let pct = get-page-pct(loc)
   let left-margin = margin-note-defaults.at(loc).margin-left
@@ -171,6 +195,7 @@
     #place(path(stroke: stroke, ..path-pts))
     #place(dx: dist-to-margin + 1*pct, dy: dy, note-rect)
   ]
+  _update-descent("right", dy, loc, note-rect)
 }
 
 #let _margin-note-left(body, stroke, dy, anchor-x, width, loc) = {
@@ -193,11 +218,12 @@
     #place(path(stroke: stroke, ..path-pts))
     #place(dx: dist-to-margin + 1*pct, dy: dy, note-rect)
   ]
+  _update-descent("left", dy, loc, note-rect)
 }
 
 
-#let margin-note(body, dy: 0pt, ..kwargs) = {
-  locate(loc => {
+#let margin-note(body, dy: auto, ..kwargs) = {
+  _run-func-on-first-loc(loc => {
     let anchor-x = loc.position().x
     let properties = margin-note-defaults.at(loc)
     for (kw, val) in kwargs.named().pairs() {
@@ -208,6 +234,21 @@
       return
     }
 
+    // `let` assignment allows mutating argument
+    let dy = dy
+    if dy == auto {
+      let cur-descent = note-descent.at(loc).at(repr(properties.side))
+      dy = calc.max(0pt, cur-descent - loc.position().y)
+      // Notes at the beginning of a line misreport their y position, since immediately
+      // after they are placed, a new line is created which moves the note down.
+      // A hacky fix is to subtract a line's worth of space from the y position when
+      // detecting a note at the beginning of a line.
+      // TODO: When https://github.com/typst/typst/issues/763 is resolved,
+      // `get` this value from `par.leading` instead of hardcoding`
+      if anchor-x == properties.margin-left {
+        dy -= 0.65em
+      }
+    }
 
     if properties.side == right {
       _margin-note-right(body, properties.stroke, dy, anchor-x, properties.margin-right, loc)
