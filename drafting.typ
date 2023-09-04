@@ -1,6 +1,6 @@
 #let pos-tracker = state("pos", none)
 #let margin-note-defaults = state(
-  "margin-note-defaults", (margin-right: 0in, margin-left: 0in, stroke: red, side: right, page-width: none, hidden: false, text-kwargs: none)
+  "margin-note-defaults", (margin-right: 0in, margin-left: 0in, stroke: red, side: right, page-width: none, hidden: false)
 )
 
 #let absolute-place(dx: 0em, dy: 0em, content) = {
@@ -202,7 +202,6 @@
       return
     }
 
-    set text(..properties.text-kwargs) if properties.text-kwargs != none
 
     if properties.side == right {
       _margin-note-right(body, properties.stroke, dy, anchor-x, properties.margin-right, loc)
