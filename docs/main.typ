@@ -16,31 +16,60 @@ The easiest way to add margin notes is by simply calling:
 #lorem(18)
 #margin-note[This is a margin note.]
 #lorem(2)
-#margin-note(dy: 3em, stroke: aqua)[Overlapping notes? Use `dy: <amount>` to adjust the vertical spacing.]
+#margin-note(stroke: aqua)[Overlapping notes? Use `dy: <amount>` to adjust the vertical spacing. Or, if $<=3$ notes overlap, `dy` will be automatically adjusted to avoid overlap if not specified.
+#footnote[`typst` warns when the layout doesn't resolve after 5 attempts, which happens when there are 4 or more overlapping notes.]
+]
 
 #lorem(3)
-#margin-note(side: left, dy: -40pt)[Shake things with notes on both sides of the page.]
+#margin-note(side: left, dy: -25pt)[Shake things with notes on both sides of the page]
 #lorem(27)
 
 #let reviewer-a = margin-note.with(stroke: blue)
 #let reviewer-b = margin-note.with(stroke: purple)
 Multiple reviewers? Customize your margin note colors:
 
-#code-example("#let reviewer-a = margin-note.with(stroke: blue)")#reviewer-a[Hi there]
+#code-example("#let reviewer-a = margin-note.with(stroke: blue)")
+#reviewer-a[Hi there]
 
-#code-example("#let reviewer-b = margin-note.with(stroke: purple)")#reviewer-b(side: left, dy: 10pt)[Hello]
+#code-example("#let reviewer-b = margin-note.with(stroke: purple)")
+#reviewer-b(side: left)[Hello]
 
-Don't like the default color or side?
-Update them to something more appealing:
+Don't like the default color or side? Update them to something more appealing. You can combine this with `set` rules for even deeper customization:
 
-#code-example("#set-margin-note-defaults(stroke: yellow, side: left)")
+#code-example("#set-margin-note-defaults(stroke: yellow, side: left)
+#let my-note(..args) = {
+  set text(weight: \"bold\")
+  set rect(fill: yellow.lighten(80%))
+  margin-note(..args)
+}
+")
 #set-margin-note-defaults(stroke: yellow, side: left)
+#let my-note(..args) = {
+  set text(weight: "bold")
+  set rect(fill: yellow.lighten(80%))
+  margin-note(..args)
+}
+#my-note[Yellow on the left]
+
+`set-margin-note-defaults` also allows you to globally hide notes by default. This is useful for when you want to hide all notes in a document, but selectively show them for a particular reviewer:
+
+#code-example("#set-margin-note-defaults(hidden: true)
+#margin-note[This will now be hidden by default]
+#margin-note(hidden: false)[This will still show]
+")
+#set-margin-note-defaults(hidden: true)
+#margin-note[This will now be hidden by default]
+#margin-note(hidden: false, side: right)[This will still show]
 
 #text(fill: red)[
-Todo: #margin-note[Yellow on the left by default]
-- Auto-track the lowest current note per side so manual adjustment of `dy` isn't necessary
-- Incorporate logic from #link("https://github.com/typst/typst/issues/1882") when it's resolved to avoid users explicitly calling `drafting.set-page-properties`
+Todo:
+- Incorporate logic from #link("https://github.com/typst/typst/issues/763") when it's resolved to avoid users explicitly calling `drafting.set-page-properties`
 ]
+
+// #for ii in range(1, 6) [
+//   #lorem(ii)
+//   #always-visible(side: left)[#str(ii)]
+// ]
 
 = Positioning
 Need to measure space for fine-tuned positioning? You can use `rule-grid`.
