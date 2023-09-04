@@ -153,6 +153,8 @@
 
   let dist-to-margin = 101*pct - anchor-x + left-margin
   let text-offset = 0.5em
+  width = width - 4*pct
+
   let path-pts = _path-from-diffs(
     // make an upward line before coming back down to go all the way to
     // the top of the lettering
@@ -160,12 +162,14 @@
     (0pt, 1em + text-offset),
     (dist-to-margin, 0pt),
     (0pt, dy),
-    (1*pct, 0pt)
+    (1*pct + width / 2, 0pt)
   )
+  dy += text-offset
+  let note-rect = rect(stroke: stroke, width: width, body)
   // Boxing prevents forced paragraph breaks
   box[
     #place(path(stroke: stroke, ..path-pts))
-    #place(dx: dist-to-margin + 1*pct, dy: dy + text-offset, rect(stroke: stroke, body, width: width - 4*pct))
+    #place(dx: dist-to-margin + 1*pct, dy: dy, note-rect)
   ]
 }
 
@@ -180,12 +184,14 @@
     (-anchor-x + width + 1*pct, 0pt),
     (-2*pct, 0pt),
     (0pt, dy),
-    (-1*pct, 0pt),
+    (-1*pct - box-width / 2, 0pt),
   )
+  dy += text-offset
+  let note-rect = rect(stroke: stroke, width: box-width, body)
   // Boxing prevents forced paragraph breaks
   box[
     #place(path(stroke: stroke, ..path-pts))
-    #place(dx: dist-to-margin + 1*pct, dy: dy + text-offset, rect(stroke: stroke, body, width: box-width))
+    #place(dx: dist-to-margin + 1*pct, dy: dy, note-rect)
   ]
 }
 
