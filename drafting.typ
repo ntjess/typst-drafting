@@ -43,6 +43,8 @@
 }
 
 #let rule-grid(
+  dx: 0pt,
+  dy: 0pt,
   color: black,
   width: 100cm,
   height: 100cm,
@@ -75,6 +77,8 @@
   set line(stroke: color)
   
   let place-func = if relative {place} else {absolute-place}
+  let global-dx = dx
+  let global-dy = dy
   style(styles => {
     // text should fit within a spacing rectangle. For now assume it's good enough
     // to just check against x dimension
@@ -85,18 +89,22 @@
       let step = to-int(x-spacing)
       for (ii, dx) in range(0, width, step: step).enumerate() {
         place-func(
+          dx: global-dx, dy: global-dy,
           line(start: (dx * 1pt, 0pt), end: (dx * 1pt, height * 1pt))
         )
         place-func(
-          dx: dx * 1pt, dy: 1pt,
+          dx: global-dx + (dx * 1pt), dy: global-dy + 1pt,
           scaler(repr(ii * step))
         )
       }
       let step = to-int(y-spacing)
       for (ii, dy) in range(0, height, step: step).enumerate() {
-        place-func(line(start: (0pt, dy * 1pt), end: (width * 1pt, dy * 1pt)))
         place-func(
-          dy: dy * 1pt + 1pt, dx: 0pt,
+          dx: global-dx, dy: global-dy,
+          line(start: (0pt, dy * 1pt), end: (width * 1pt, dy * 1pt))
+          )
+        place-func(
+          dy: global-dy + dy * 1pt + 1pt, dx: global-dx,
           scaler(repr(ii * step))
         )
       }
