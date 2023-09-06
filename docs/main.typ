@@ -111,10 +111,6 @@ Even deeper customization is possible by overriding the default `rect`:
 #margin-note(hidden: false, dy: -2.5em)[This note will never be hidden]
 ```
 
-== Feature roadmap
-#text(fill: red)[
-- Incorporate logic from #link("https://github.com/typst/typst/issues/763") when it's resolved to avoid users explicitly calling `drafting.set-page-properties`
-]
 
 = Positioning
 == Precise placement: rule grid
@@ -163,9 +159,3 @@ What about absolutely positioning something regardless of margin and relative lo
 ```
 
 The "rule-grid" also supports absolute placement at the top-left of the page by passing `relative: false`. This is helpful for "rule"-ing the whole page.
-
-== Feature roadmap
-#text(fill: red)[
-- Allow percentage-based dimensions for `rule-grid`
-- Allow independent (x, y) divisions or spacing rather than forcing square units
-]
