@@ -118,8 +118,9 @@ Even deeper customization is possible by overriding the default `rect`:
 
 = Positioning
 == Precise placement: rule grid
-Need to measure space for fine-tuned positioning? You can use `rule-grid`.
-Just note that dimensions can't be specified using `%`:
+Need to measure space for fine-tuned positioning? You can use `rule-grid` to cross-hatch
+the page with rule lines:
+
 
 ```example
 #rule-grid(width: 10cm, height: 3cm, spacing: 20pt)
@@ -131,7 +132,7 @@ Just note that dimensions can't be specified using `%`:
 
 // Optionally specify divisions of the smallest dimension to automatically calculate
 // spacing
-#rule-grid(dx: 10.5cm, width: 3cm, height: 1cm, divisions: 3, color: green)
+#rule-grid(dx: 10cm + 3em, width: 3cm, height: 1.2cm, divisions: 5, square: true,  stroke: green)
 
 // The rule grid doesn't take up space, so add it explicitly
 #v(3cm + 1em)
@@ -142,7 +143,7 @@ What about absolutely positioning something regardless of margin and relative lo
 
 ```example
 #locate(loc => {
-  let (dx, dy) = (3.5in, loc.position().y - 1.5in)
+  let (dx, dy) = (25%, loc.position().y)
   let content-str = (
     "This absolutely-placed box will originate at (" + repr(dx) + ", " + repr(dy) + ")"
     + " in page coordinates"
@@ -152,12 +153,13 @@ What about absolutely positioning something regardless of margin and relative lo
     rect(
       fill: green.lighten(60%),
       radius: 0.5em,
-      width: 1.5in,
-      [#content-str]
+      width: 2.5in,
+      height: 0.5in,
+      [#align(center + horizon, content-str)]
     )
   )
 })
-Look for the green box to the right
+#v(0.5in)
 ```
 
 The "rule-grid" also supports absolute placement at the top-left of the page by passing `relative: false`. This is helpful for "rule"-ing the whole page.

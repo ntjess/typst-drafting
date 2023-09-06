@@ -60,26 +60,20 @@
 }
 
 #let _calc-text-resize-ratio(width, spacing, styles) = {
-  // Add extra digit to ensure reasonable separation between two adjacent lines
-  let num-digits = calc.ceil(calc.log(width)) + 1
-  // M is conventionally the widest character so it should leave enough space if determining
-  // the scale factor
-  let dummy-number = "M"
-  for ii in range(1, num-digits) {
-    dummy-number += "M"
-  }
-  let max-width = measure(text(dummy-number), styles).width
-  spacing/max-width * 100%
+  // Add extra margin to ensure reasonable separation between two adjacent lines
+  let size = measure(text[#width], styles).width * 120%
+  spacing / size * 100%
 }
 
 #let rule-grid(
   dx: 0pt,
   dy: 0pt,
-  color: black,
+  stroke: black,
   width: 100cm,
   height: 100cm,
   spacing: none,
   divisions: none,
+  square: false,
   relative: true,
 ) = {
   // Unfortunately an int cannot be constructed from a length, so get it through a
@@ -90,41 +84,49 @@
   if spacing != none and divisions != none {
     panic("Only one of `spacing` or `divisions` can be specified")
   }
-  if divisions != none {
-    spacing = calc.min(width, height)/divisions
+  if divisions != none and type(divisions) != "array" {
+    divisions = (divisions, divisions)
   }
-  let to-int(amt) = int(float(repr(amt.abs).slice(0, -2)))
-  let x-spacing = spacing
-  let y-spacing = spacing
-  if type(spacing) == "sequence" {
-    x-spacing = spacing.at(0)
-    y-spacing = spacing.at(1)
+  if spacing != none and type(spacing) != "array" {
+    spacing = (spacing, spacing)
   }
-  let width = to-int(width)
-  let height = to-int(height)
-  
-  set text(size: spacing, fill: color)
-  set line(stroke: color)
-  
+
   let place-func = if relative {place} else {absolute-place}
   let global-dx = dx
   let global-dy = dy
-  style(styles => {
-    // text should fit within a spacing rectangle. For now assume it's good enough
-    // to just check against x dimension
-    let scale-factor = _calc-text-resize-ratio(width, spacing, styles)
-    let scaler = scale.with(x: scale-factor, y: scale-factor, origin: top + left)
+  let to-int(amt) = int(amt.abs / 1pt)
+  let to-pt(amt) = amt * 1pt
 
+  let (divisions, spacing) = (divisions, spacing)
+
+  if divisions != none {
+    divisions = divisions.map(to-pt)
+    spacing = (width/divisions.at(0), height/divisions.at(1))
+    if square {
+      spacing = (calc.min(..spacing), calc.min(..spacing))
+    }
+    spacing = spacing.map(to-pt)
+  }
+  let (x-spacing, y-spacing) = spacing
+
+  let (width, height, step) = (width, height, x-spacing).map(to-int)
+  style(styles => {
+    // Assume text width is the limiting factor since a number will often be wider than
+    // tall. This works in the majority of cases
+    let scale-factor = _calc-text-resize-ratio(width, x-spacing, styles)
+
+    set line(stroke: stroke)
+    let dummy-line = line(stroke: stroke)
+    set text(size: 1em * scale-factor, fill: dummy-line.stroke.paint)
     locate(loc => {
-      let step = to-int(x-spacing)
       for (ii, dx) in range(0, width, step: step).enumerate() {
         place-func(
           dx: global-dx, dy: global-dy,
           line(start: (dx * 1pt, 0pt), end: (dx * 1pt, height * 1pt))
         )
         place-func(
-          dx: global-dx + (dx * 1pt), dy: global-dy + 1pt,
-          scaler(repr(ii * step))
+          dx: global-dx + (dx * 1pt), dy: global-dy,
+          repr(ii * step)
         )
       }
       let step = to-int(y-spacing)
@@ -134,8 +136,8 @@
           line(start: (0pt, dy * 1pt), end: (width * 1pt, dy * 1pt))
           )
         place-func(
-          dy: global-dy + dy * 1pt + 1pt, dx: global-dx,
-          scaler(repr(ii * step))
+          dy: global-dy + dy * 1pt, dx: global-dx,
+          repr(ii * step)
         )
       }
     })
