@@ -2,15 +2,34 @@
 #import "../drafting.typ"
 
 #import "utils.typ": *
-#show raw.where(lang: "example"): content => {
+
+#let _COMPILE-PNG = false
+
+#let normal-show(content) = {
   set text(font: "Linux Libertine")
   example-with-source(content.text, drafting: drafting)
 }
 
+#let png-show(content) = {
+  set text(font: "Linux Libertine")
+  eval-example(content.text, drafting: drafting)
+}
+
+#show raw.where(lang: "example"): if _COMPILE-PNG {
+  png-show
+} else {
+  normal-show
+}
+
 
 #let (l-margin, r-margin) = (1in, 2in)
+#let t-b-margin = if _COMPILE-PNG {
+  0.1in
+} else {
+  0.8in
+}
 #set page(
-  margin: (left: l-margin, right: r-margin, rest: 0.1in),
+  margin: (left: l-margin, right: r-margin, rest: t-b-margin),
   paper: "us-letter",
   height: auto
 )
@@ -36,13 +55,14 @@ Unfortunately `typst` doesn't expose margins to calling functions, so you'll nee
 == The basics
 ```example
 #lorem(20)
-#margin-note[Hello, world!]
+#margin-note(side: left)[Hello, world!]
+#lorem(10)
+#margin-note[Hello from the other side]
 
 #lorem(25)
 #margin-note[When notes are about to overlap, they're automatically shifted]
-#margin-note(stroke: aqua + 3pt)[Notice the lack of collision]
+#margin-note(stroke: aqua + 3pt)[To avoid collision]
 #lorem(25)
-#margin-note(side: left, dy: -50pt)[You can also explicitly specify the offset]
 
 #let caution-rect = rect.with(inset: 1em, radius: 0.5em, fill: orange.lighten(80%))
 #inline-note(rect: caution-rect)[
@@ -56,7 +76,7 @@ Unfortunately `typst` doesn't expose margins to calling functions, so you'll nee
 All function defaults are customizable through updating the module state:
 
 ```example
-#lorem(4) #margin-note[Default style]
+#lorem(4) #margin-note(dy: -2em)[Default style]
 #set-margin-note-defaults(stroke: orange, side: left)
 #lorem(4) #margin-note[Updated style]
 ```
@@ -66,12 +86,12 @@ Even deeper customization is possible by overriding the default `rect`:
 ```example
 #import "@preview/colorful-boxes:1.1.0": stickybox
 
-#let default-rect(stroke: none, fill: none, ..args, content) = {
-  stickybox(rotation: -20deg, ..args, content)
+#let default-rect(stroke: none, fill: none, width: 0pt, content) = {
+  stickybox(rotation: 30deg, width: width/1.5, content)
 }
 #set-margin-note-defaults(rect: default-rect, stroke: none, side: right)
 
-#lorem(10)
+#lorem(20)
 #margin-note(dy: -25pt)[Why not use sticky notes in the margin?]
 ```
 
@@ -111,12 +131,16 @@ Even deeper customization is possible by overriding the default `rect`:
 #margin-note(hidden: false, dy: -2.5em)[This note will never be hidden]
 ```
 
+#set page(margin: (left: 0.8in, right: 0.8in)) if not _COMPILE-PNG
 
 = Positioning
 == Precise placement: rule grid
 Need to measure space for fine-tuned positioning? You can use `rule-grid` to cross-hatch
 the page with rule lines:
 
+#if _COMPILE-PNG {
+  v(1em)
+}
 
 ```example
 #rule-grid(width: 10cm, height: 3cm, spacing: 20pt)
@@ -157,5 +181,8 @@ What about absolutely positioning something regardless of margin and relative lo
 })
 #v(0.5in)
 ```
+#if _COMPILE-PNG {
+  v(1em)
+}
 
 The "rule-grid" also supports absolute placement at the top-left of the page by passing `relative: false`. This is helpful for "rule"-ing the whole page.
