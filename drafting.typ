@@ -29,7 +29,7 @@
     hidden: false,
   )
 )
-#let note-descent = state("note-descent", (left: 0pt, right: 0pt))
+#let note-descent = state("note-descent", (:))
 
 #let _run-func-on-first-loc(func) = {
   // Some placements are determined by locations relative to a fixed point. However, typst
@@ -204,13 +204,26 @@
   page-width/100
 }
 
+#let _get-descent-at-page(loc, descents-dict: none) = {
+  if descents-dict == none {
+    descents-dict = note-descent.at(loc)
+  }
+  let page-cnt = str(counter(page).at(loc).first())
+  (page-cnt, descents-dict.at(page-cnt, default: (left: 0pt, right: 0pt)))
+}
+
 #let _update-descent(side, dy, anchor-y, note-rect) = {
   style(styles => {
-    let height = measure(note-rect, styles).height
-    let dy = measure(v(dy + height), styles).height + anchor-y
-    note-descent.update(old => {
-      old.insert(side, calc.max(dy, old.at(side)))
-      old
+    locate(loc => {
+      let height = measure(note-rect, styles).height
+      let dy = measure(v(dy + height), styles).height + anchor-y
+      note-descent.update(old => {
+        let (cnt, props) = _get-descent-at-page(loc, descents-dict: old)
+
+        props.insert(side, calc.max(dy, props.at(side)))
+        old.insert(cnt, props)
+        old
+      })
     })
   })
 }
@@ -288,7 +301,8 @@
     // `let` assignment allows mutating argument
     let dy = dy
     if dy == auto {
-      let cur-descent = note-descent.at(loc).at(repr(properties.side))
+      let (cur-page, descents) = _get-descent-at-page(loc)
+      let cur-descent = descents.at(repr(properties.side))
       dy = calc.max(0pt, cur-descent - loc.position().y)
       // Notes at the beginning of a line misreport their y position, since immediately
       // after they are placed, a new line is created which moves the note down.
