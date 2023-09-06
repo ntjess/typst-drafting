@@ -1,6 +1,33 @@
 #let loc-tracker = state("loc-tracker", none)
+
+/// Default properties for margin notes. These can be overridden per function call, or
+/// globally by calling `set-margin-note-defaults`. Available options are:
+/// - `margin-right` (length): Size of the right margin
+/// - `margin-left` (length): Size of the left margin
+/// - `page-width` (length): Width of the page/container. This is automatically
+///   inferrable when using `set-page-properties`
+/// - `page-offset-x` (length): Horizontal offset of the page/container. This is
+///   generally only useful if margin notes are applied inside a box/rect; at the page
+///   level this can remain unspecified
+/// - `stroke` (paint): Stroke to use for the margin note's border and connecting line
+/// - `rect` (function): Function to use for drawing the margin note's border. This
+///   function must accept positional `content` and keyword `width` arguments.
+/// - `side` (side): Which side of the page to place the margin note on. Must be `left`
+///   or `right`
+/// - `hidden` (bool): Whether to hide the margin note. This is useful for temporarily
+///   disabling margin notes without removing them from the code
 #let margin-note-defaults = state(
-  "margin-note-defaults", (margin-right: 0in, margin-left: 0in, stroke: red, side: right, page-width: none, hidden: false)
+  "margin-note-defaults",
+  (
+    margin-right: 0in,
+    margin-left: 0in,
+    page-width: none,
+    page-offset-x: 0in,
+    stroke: red,
+    rect: rect,
+    side: right,
+    hidden: false,
+  )
 )
 #let note-descent = state("note-descent", (left: 0pt, right: 0pt))
 
@@ -113,11 +140,19 @@
 }
 
 #let set-margin-note-defaults(..defaults) = {
+  defaults = defaults.named()
   margin-note-defaults.update(old => {
-    for (key, value) in defaults.named().pairs() {
-      old.insert(key, value)
+    if type(old) != "dictionary" {
+      old
+      panic("margin-note-defaults must be a dictionary")
     }
-    old
+    if (old + defaults).len() != old.len() {
+      let allowed-keys = array(old.keys())
+      let violators = array(defaults.keys()).filter(key => key not in allowed-keys)
+      panic("margin-note-defaults can only contain the following keys: " + allowed-keys.join(", ") + ". Got: " + violators.join(", "))
+    }
+    let out = (:)
+    old + defaults
   })
 }
 
@@ -159,19 +194,18 @@
     out-path
 }
 
-#let get-page-pct(loc) = {
-  let page-width = margin-note-defaults.at(loc).page-width
+#let _get-page-pct(props) = {
+  let page-width = props.page-width
   if page-width == none {
     panic("drafting's default `page-width` must be specified and non-zero before creating a note")
   }
   page-width/100
 }
 
-#let _update-descent(side, dy, loc, note-rect) = {
+#let _update-descent(side, dy, anchor-y, note-rect) = {
   style(styles => {
     let height = measure(note-rect, styles).height
-    // let note-y = loc.position().y
-    let dy = measure(v(dy + height), styles).height + loc.position().y
+    let dy = measure(v(dy + height), styles).height + anchor-y
     note-descent.update(old => {
       old.insert(side, calc.max(dy, old.at(side)))
       old
@@ -179,13 +213,12 @@
   })
 }
 
-#let _margin-note-right(body, stroke, dy, anchor-x, width, loc) = {
-  let pct = get-page-pct(loc)
-  let left-margin = margin-note-defaults.at(loc).margin-left
-
-  let dist-to-margin = 101*pct - anchor-x + left-margin
+#let _margin-note-right(body, dy, anchor-x, anchor-y, ..props) = {
+  props = props.named()
+  let pct = _get-page-pct(props)
+  let dist-to-margin = 101*pct - anchor-x + props.margin-left
   let text-offset = 0.5em
-  width = width - 4*pct
+  let right-width = props.margin-right - 4*pct
 
   let path-pts = _path-from-diffs(
     // make an upward line before coming back down to go all the way to
@@ -194,49 +227,57 @@
     (0pt, 1em + text-offset),
     (dist-to-margin, 0pt),
     (0pt, dy),
-    (1*pct + width / 2, 0pt)
+    (1*pct + right-width / 2, 0pt)
   )
   dy += text-offset
-  let note-rect = rect(stroke: stroke, width: width, body)
+  let note-rect = props.at("rect")(
+    stroke: props.stroke, width: right-width, body
+  )
   // Boxing prevents forced paragraph breaks
   box[
-    #place(path(stroke: stroke, ..path-pts))
+    #place(path(stroke: props.stroke, ..path-pts))
     #place(dx: dist-to-margin + 1*pct, dy: dy, note-rect)
   ]
-  _update-descent("right", dy, loc, note-rect)
+  _update-descent("right", dy, anchor-y, note-rect)
 }
 
-#let _margin-note-left(body, stroke, dy, anchor-x, width, loc) = {
-  let pct = get-page-pct(loc)
+#let _margin-note-left(body, dy, anchor-x, anchor-y, ..props) = {
+  props = props.named()
+  let pct = _get-page-pct(props)
   let dist-to-margin = -anchor-x + 1*pct
   let text-offset = 0.4em
-  let box-width = width - 4*pct
+  let box-width = props.margin-left - 4*pct
   let path-pts = _path-from-diffs(
     (0pt, -1em),
     (0pt, 1em + text-offset),
-    (-anchor-x + width + 1*pct, 0pt),
+    (-anchor-x + props.margin-left + 1*pct, 0pt),
     (-2*pct, 0pt),
     (0pt, dy),
     (-1*pct - box-width / 2, 0pt),
   )
   dy += text-offset
-  let note-rect = rect(stroke: stroke, width: box-width, body)
+  let note-rect = props.at("rect")(
+    stroke: props.stroke,  width: box-width, body
+  )
   // Boxing prevents forced paragraph breaks
   box[
-    #place(path(stroke: stroke, ..path-pts))
+    #place(path(stroke: props.stroke, ..path-pts))
     #place(dx: dist-to-margin + 1*pct, dy: dy, note-rect)
   ]
-  _update-descent("left", dy, loc, note-rect)
+  _update-descent("left", dy, anchor-y, note-rect)
 }
 
-
+/// Places a boxed note in the left or right page margin.
+///
+/// - body (content): Margin note contents, usually text
+/// - dy (length): Vertical offset from the note's location -- negative values
+///   move the note up, positive values move the note down
+/// - ..kwargs (dictionary): Additional properties to apply to the note. Accepted values are keys from `margin-note-defaults`.
 #let margin-note(body, dy: auto, ..kwargs) = {
   _run-func-on-first-loc(loc => {
-    let anchor-x = loc.position().x
-    let properties = margin-note-defaults.at(loc)
-    for (kw, val) in kwargs.named().pairs() {
-      properties.insert(kw, val)
-    }
+    let pos = loc.position()
+    let properties = margin-note-defaults.at(loc) + kwargs.named()
+    let (anchor-x, anchor-y) = (pos.x - properties.page-offset-x, pos.y)
     
     if properties.hidden {
       return
@@ -258,10 +299,15 @@
       }
     }
 
-    if properties.side == right {
-      _margin-note-right(body, properties.stroke, dy, anchor-x, properties.margin-right, loc)
+    let margin-func = if properties.side == right {
+      _margin-note-right
     } else {
-      _margin-note-left(body, properties.stroke, dy, anchor-x, properties.margin-left, loc)
+      _margin-note-left
     }
+    margin-func(
+      body, dy, anchor-x, anchor-y, ..properties
+    )
+  })
+}
   })
 }
