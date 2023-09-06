@@ -1,120 +1,169 @@
-#import "../drafting.typ": margin-note, rule-grid, absolute-place, set-page-properties, set-margin-note-defaults
+#import "../drafting.typ": *
+#import "../drafting.typ"
 
-#let (l-margin, r-margin) = (0.8in, 2in)
-#set page(margin: (left: l-margin, right: r-margin, rest: 0.1in), paper: "us-letter", height: auto)
+#import "utils.typ": *
+#show raw.where(lang: "example"): content => {
+  set text(font: "Linux Libertine")
+  example-with-source(content.text, drafting: drafting)
+}
+
+
+#let (l-margin, r-margin) = (1in, 2in)
+#set page(
+  margin: (left: l-margin, right: r-margin, rest: 0.1in),
+  paper: "us-letter",
+  height: auto
+)
 #set-page-properties(margin-left: l-margin, margin-right: r-margin)
 
-#let code-example(body) = {
-  box(fill: gray.lighten(70%), outset: 0.35em, radius: 0.5em, raw(lang: "typst", body))
-}
-
 = Margin Notes
-The easiest way to add margin notes is by simply calling:
+== Setup
+Unfortunately `typst` doesn't expose margins to calling functions, so you'll need to set them explicitly. This is done using `set-page-properties` *before you place any content*:
 
-#code-example("#margin-note[content]")
+```typ
+// At the top of your source file
+// Of course, you can substitute any margin numbers you prefer
+// provided the page margins match what you pass to `set-page-properties`
+#import "../drafting.typ": *
+#let (l-margin, r-margin) = (1in, 2in)
+#set page(
+  margin: (left: l-margin, right: r-margin, rest: 0.1in),
+  paper: "us-letter",
+)
+#set-page-properties(margin-left: l-margin, margin-right: r-margin)
+```
 
-#lorem(18)
-#margin-note[This is a margin note.]
-#lorem(2)
-#margin-note(stroke: aqua)[Overlapping notes? Use `dy: <amount>` to adjust the vertical spacing. Or, if $<=3$ notes overlap, `dy` will be automatically adjusted to avoid overlap if not specified.
-#footnote[`typst` warns when the layout doesn't resolve after 5 attempts, which happens when there are 4 or more overlapping notes.]
+== The basics
+```example
+#lorem(20)
+#margin-note[Hello, world!]
+
+#lorem(25)
+#margin-note[When notes are about to overlap, they're automatically shifted]
+#margin-note(stroke: aqua + 3pt)[Notice the lack of collision]
+#lorem(25)
+#margin-note(side: left, dy: -50pt)[You can also explicitly specify the offset]
+
+#let caution-rect = rect.with(inset: 1em, radius: 0.5em, fill: orange.lighten(80%))
+#inline-note(rect: caution-rect)[
+  Be aware that notes will stop automatically avoiding collisions if 4 or more notes
+  overlap. This is because `typst` warns when the layout doesn't resolve after 5 attempts
+  (initial layout + adjustment for each note)
 ]
+```
 
-#lorem(3)
-#margin-note(side: left, dy: -25pt)[Shake things with notes on both sides of the page]
-#lorem(27)
+== Adjusting the default style
+All function defaults are customizable through updating the module state:
 
+```example
+#lorem(4) #margin-note[Default style]
+#set-margin-note-defaults(stroke: orange, side: left)
+#lorem(4) #margin-note[Updated style]
+```
+
+Even deeper customization is possible by overriding the default `rect`:
+
+```example
+#import "@preview/colorful-boxes:1.1.0": stickybox
+
+#let default-rect(stroke: none, fill: none, ..args, content) = {
+  stickybox(rotation: -20deg, ..args, content)
+}
+#set-margin-note-defaults(rect: default-rect, stroke: none, side: right)
+
+#lorem(10)
+#margin-note(dy: -25pt)[Why not use sticky notes in the margin?]
+```
+
+// Undo changes from last example
+#set-margin-note-defaults(rect: rect, stroke: red)
+
+== Multiple document reviewers
+
+```example
 #let reviewer-a = margin-note.with(stroke: blue)
 #let reviewer-b = margin-note.with(stroke: purple)
-Multiple reviewers? Customize your margin note colors:
+#lorem(20)
+#reviewer-a[Comment from reviewer A]
+#lorem(15)
+#reviewer-b(side: left)[Comment from reviewer B]
+```
 
-#code-example("#let reviewer-a = margin-note.with(stroke: blue)")
-#reviewer-a[Hi there]
 
-#code-example("#let reviewer-b = margin-note.with(stroke: purple)")
-#reviewer-b(side: left)[Hello]
+== Inline Notes
+```example
+#lorem(10)
+#inline-note[The default inline note will split the paragraph at its location]
+#lorem(10)
+#inline-note(par-break: false, stroke: (paint: orange, dash: "dashed"))[
+  But you can specify `par-break: false` to prevent this
+]
+#lorem(10)
+```
 
-Don't like the default color or side? Update them to something more appealing. You can combine this with `set` rules for even deeper customization:
+== Hiding notes for print preview
 
-#code-example("#set-margin-note-defaults(stroke: yellow, side: left)
-#let my-note(..args) = {
-  set text(weight: \"bold\")
-  set rect(fill: yellow.lighten(80%))
-  margin-note(..args)
-}
-")
-#set-margin-note-defaults(stroke: yellow, side: left)
-#let my-note(..args) = {
-  set text(weight: "bold")
-  set rect(fill: yellow.lighten(80%))
-  margin-note(..args)
-}
-#my-note[Yellow on the left]
-
-`set-margin-note-defaults` also allows you to globally hide notes by default. This is useful for when you want to hide all notes in a document, but selectively show them for a particular reviewer:
-
-#code-example("#set-margin-note-defaults(hidden: true)
-#margin-note[This will now be hidden by default]
-#margin-note(hidden: false)[This will still show]
-")
+```example
 #set-margin-note-defaults(hidden: true)
-#margin-note[This will now be hidden by default]
-#margin-note(hidden: false, side: right)[This will still show]
 
+#lorem(20)
+#margin-note[This will respect the global "hidden" state]
+#margin-note(hidden: false, dy: -2.5em)[This note will never be hidden]
+```
+
+== Feature roadmap
 #text(fill: red)[
-Todo:
 - Incorporate logic from #link("https://github.com/typst/typst/issues/763") when it's resolved to avoid users explicitly calling `drafting.set-page-properties`
 ]
 
-// #for ii in range(1, 6) [
-//   #lorem(ii)
-//   #always-visible(side: left)[#str(ii)]
-// ]
-
 = Positioning
+== Precise placement: rule grid
 Need to measure space for fine-tuned positioning? You can use `rule-grid`.
 Just note that dimensions can't be specified using `%`:
 
-#code-example("#rule-grid(width: 10cm, height: 3cm, spacing: 20pt)")
-
+```example
 #rule-grid(width: 10cm, height: 3cm, spacing: 20pt)
 #place(
   dx: 180pt,
   dy: 40pt,
   rect(fill: white, stroke: red, width: 1in, "This will originate at (180pt, 40pt)")
 )
+
+// Optionally specify divisions of the smallest dimension to automatically calculate
+// spacing
+#rule-grid(dx: 10.5cm, width: 3cm, height: 1cm, divisions: 3, color: green)
+
 // The rule grid doesn't take up space, so add it explicitly
 #v(3cm + 1em)
+```
 
-What about absolutely positining something regardless of margin and relative location? `absolute-place` is your friend. You can put content anywhere:
+== Absolute positioning
+What about absolutely positioning something regardless of margin and relative location? `absolute-place` is your friend. You can put content anywhere:
 
-#code-example(
-"#absolute-place(
-  dx: dx, dy: dy,
-  rect(
-    fill: green.lighten(60%),
-    radius: 0.5em,
-    width: 2.25in,
-    [content]
+```example
+#locate(loc => {
+  let (dx, dy) = (3.5in, loc.position().y - 1.5in)
+  let content-str = (
+    "This absolutely-placed box will originate at (" + repr(dx) + ", " + repr(dy) + ")"
+    + " in page coordinates"
   )
-)"
-)
-
-#let (dx, dy) = (3.5in, 78%)
-#absolute-place(
-  dx: dx,
-  dy: dy,
-  rect(
-    fill: green.lighten(60%),
-    radius: 0.5em,
-    width: 2.25in,
-    "This absolutely-placed box will originate at (" + repr(dx) + ", " + repr(dy) + ") in page coordinates")
-)
+  absolute-place(
+    dx: dx, dy: dy,
+    rect(
+      fill: green.lighten(60%),
+      radius: 0.5em,
+      width: 1.5in,
+      [#content-str]
+    )
+  )
+})
+Look for the green box to the right
+```
 
 The "rule-grid" also supports absolute placement at the top-left of the page by passing `relative: false`. This is helpful for "rule"-ing the whole page.
 
+== Feature roadmap
 #text(fill: red)[
-Todo: 
 - Allow percentage-based dimensions for `rule-grid`
 - Allow independent (x, y) divisions or spacing rather than forcing square units
 ]
