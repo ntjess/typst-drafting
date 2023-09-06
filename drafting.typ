@@ -49,6 +49,9 @@
   loc-tracker.update(none)
 }
 
+/// Place content at a specific location on the page relative to the top left corner
+/// of the page, regardless of margins, current container, etc.
+/// -> content
 #let absolute-place(dx: 0em, dy: 0em, content) = {
   _run-func-on-first-loc(loc => {
     let pos = loc.position()
@@ -162,13 +165,12 @@
   // the content
   place(
     layout(layout-size => {
-      let update-dict = (
-        margin-right: margin-right, margin-left: margin-left, page-width: layout-size.width,
+      set-margin-note-defaults(
+        margin-right: margin-right,
+        margin-left: margin-left,
+        page-width: layout-size.width,
+        ..kwargs
       )
-      for (kw, val) in kwargs.pairs() {
-        update-dict.insert(kw, val)
-      }
-      set-margin-note-defaults(..update-dict)
     })
   )
 }
