@@ -155,6 +155,24 @@
   })
 }
 
+#let place-margin-rects(padding: 1%, ..rect-kwargs) = {
+  let rect-kwargs = rect-kwargs.named()
+  if "height" not in rect-kwargs {
+    rect-kwargs.insert("height", 100%)
+  }
+  locate(loc => {
+    let props = margin-note-defaults.at(loc)
+    let (page-width, r-width, l-width) = (
+      props.page-width,
+      props.margin-right,
+      props.margin-left,
+    )
+    let r(w) = rect(width: w, ..rect-kwargs)
+    absolute-place(r(l-width - padding))
+    absolute-place(dx: page-width + l-width + padding, r(r-width - padding))
+  })
+}
+
 #let set-page-properties(margin-right: 0pt, margin-left: 0pt, ..kwargs) = {
   let kwargs = kwargs.named()
   // Wrapping in "place" prevents a linebreak from adjusting
