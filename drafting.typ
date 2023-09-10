@@ -1,5 +1,3 @@
-#let loc-tracker = state("loc-tracker", none)
-
 /// Default properties for margin notes. These can be overridden per function call, or
 /// globally by calling `set-margin-note-defaults`. Available options are:
 /// - `margin-right` (length): Size of the right margin
@@ -31,22 +29,18 @@
 )
 #let note-descent = state("note-descent", (:))
 
-#let _run-func-on-first-loc(func) = {
+#let _run-func-on-first-loc(func, label-name: "loc-tracker") = {
   // Some placements are determined by locations relative to a fixed point. However, typst
   // will automatically re-evaluate that computation several times, since the usage
   // of that computation will change where an element is placed (and therefore update its
   // location, and so on). Get around this with a state that only checks for the first
   // update, then ignores all subsequent updates
+  let lbl = label(label-name)
+  [#metadata(label-name)#lbl]
   locate(loc => {
-    let use-loc = loc
-    if loc-tracker.at(loc) != none {
-      use-loc = loc-tracker.at(loc)
-    } else {
-      loc-tracker.update(loc)
-    }
+    let use-loc = query(selector(lbl).before(loc), loc).last().location()
     func(use-loc)
   })
-  loc-tracker.update(none)
 }
 
 /// Place content at a specific location on the page relative to the top left corner
@@ -291,7 +285,7 @@
 ///   move the note up, positive values move the note down
 /// - ..kwargs (dictionary): Additional properties to apply to the note. Accepted values are keys from `margin-note-defaults`.
 #let margin-note(body, dy: auto, ..kwargs) = {
-  _run-func-on-first-loc(loc => {
+  _run-func-on-first-loc(label-name: "margin-note", loc => {
     let pos = loc.position()
     let properties = margin-note-defaults.at(loc) + kwargs.named()
     let (anchor-x, anchor-y) = (pos.x - properties.page-offset-x, pos.y)
