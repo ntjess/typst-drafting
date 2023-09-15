@@ -180,18 +180,14 @@
 
 #let set-page-properties(margin-right: 0pt, margin-left: 0pt, ..kwargs) = {
   let kwargs = kwargs.named()
-  // Wrapping in "place" prevents a linebreak from adjusting
-  // the content
-  place(
-    layout(layout-size => {
-      set-margin-note-defaults(
-        margin-right: margin-right,
-        margin-left: margin-left,
-        page-width: layout-size.width,
-        ..kwargs
-      )
-    })
-  )
+  layout(layout-size => {
+    set-margin-note-defaults(
+      margin-right: margin-right,
+      margin-left: margin-left,
+      page-width: layout-size.width,
+      ..kwargs
+    )
+  })
 }
 
 #let margin-lines(stroke: gray + 0.5pt) = {
