@@ -38,7 +38,14 @@
   let lbl = label(label-name)
   [#metadata(label-name)#lbl]
   locate(loc => {
-    let use-loc = query(selector(lbl).before(loc), loc).last().location()
+    let found-labels = query(selector(lbl).before(loc), loc)
+    if found-labels.len() == 0 {
+      // Happens when a "show" rule hides a page or there is otherwise no displayed
+      // content
+      return
+    }
+    let use-loc = found-labels.last().location()
+
     func(use-loc)
   })
 }
