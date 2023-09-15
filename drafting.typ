@@ -23,7 +23,7 @@
     page-offset-x: 0in,
     stroke: red,
     rect: rect,
-    side: right,
+    side: auto,
     hidden: false,
   )
 )
@@ -308,6 +308,11 @@
     
     if properties.hidden {
       return
+    }
+
+    if properties.side == auto {
+      let (r, l) = (properties.margin-right, properties.margin-left)
+      properties.side = if calc.max(r, l) == r {right} else {left}
     }
 
     // `let` assignment allows mutating argument
