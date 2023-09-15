@@ -142,7 +142,6 @@
   defaults = defaults.named()
   margin-note-defaults.update(old => {
     if type(old) != "dictionary" {
-      old
       panic("margin-note-defaults must be a dictionary")
     }
     if (old + defaults).len() != old.len() {
@@ -150,7 +149,6 @@
       let violators = array(defaults.keys()).filter(key => key not in allowed-keys)
       panic("margin-note-defaults can only contain the following keys: " + allowed-keys.join(", ") + ". Got: " + violators.join(", "))
     }
-    let out = (:)
     old + defaults
   })
 }
