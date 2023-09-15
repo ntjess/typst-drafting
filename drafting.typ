@@ -366,29 +366,18 @@
       return rect-func(body, stroke: properties.stroke)
     }
     // else
-    let dummy-rect = rect-func(stroke: properties.stroke)[Dummy content]
+    let dummy-rect = rect-func(stroke: properties.stroke)
     let s = dummy-rect.stroke
-    // Underline/overline stroke should inherit their properties from when users
-    // specify `set rect(stroke: ...)` which is accomplished by grabbing defaults
-    // from a dummy rect.
-    let stroke-props = (
-      paint: s.paint,
-      thickness: s.thickness,
-      cap: s.cap,
-      miter-limit: s.miter-limit,
-      dash: s.dash,
-    )
     let bottom = 0.5em
     let top = 1em
     set text(top-edge: "ascender", bottom-edge: "descender")
     let cap-line = {
-      let t = s.thickness / 2
-      show "|": it => box(height: top, outset: (bottom: bottom + t, top: t), stroke: s)
-      [|]
+      let t = if s.thickness == auto {0pt} else {s.thickness / 2}
+      box(height: top, outset: (bottom: bottom + t, top: t), stroke: (left: properties.stroke))
     }
-    let new-body = underline(stroke: stroke-props, [ #body ], offset: bottom)
+    let new-body = underline(stroke: properties.stroke, [ #body ], offset: bottom)
     new-body = [
-      #underline([#cap-line#new-body#cap-line], stroke: stroke-props, offset: -top)
+      #underline([#cap-line#new-body#cap-line], stroke: properties.stroke, offset: -top)
     ]
     new-body
 
