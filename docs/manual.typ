@@ -21,18 +21,12 @@
   example-with-source(content.text, drafting: drafting)
 }
 
-#show-module-fn(module, "inline-note", style: tidy.styles.minimal)
-```example
-= Document Title
-#lorem(7)
-#inline-note[An inline note that breaks the paragraph]
-#lorem(6)
-#inline-note(par-break: false)[A note with no paragraph break]
-#lorem(6)
-```
+#let show-mod-old = show-module-fn
+#let show-module-fn = show-mod-old.with(first-heading-level: 0)
 
-#show-module-fn(module, "margin-note-defaults", style: tidy.styles.minimal)
-#show-module-fn(module, "margin-note", style: tidy.styles.minimal)
+#show-module-fn(module, "margin-note-defaults")
+
+#show-module-fn(module, "margin-note")
 ```standalone
 = Document Title
 #lorem(3)
@@ -43,3 +37,15 @@
 #margin-note(side: left, dy: -10pt)[Manual offset]
 #lorem(10)
 ```
+
+#show-module-fn(module, "inline-note")
+```example
+= Document Title
+#lorem(7)
+#inline-note[An inline note that breaks the paragraph]
+#lorem(6)
+#inline-note(par-break: false)[A note with no paragraph break]
+#lorem(6)
+```
+
+#show-module-fn(module, "rule-grid")
