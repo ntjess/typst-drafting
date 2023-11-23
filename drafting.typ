@@ -66,6 +66,26 @@
   spacing / size * 100%
 }
 
+
+/// Add a series of evenly spaced x- any y-axis lines to the page.
+///
+/// - dx (length): Horizontal offset from the top left corner of the page
+/// - dy (length): Vertical offset from the top left corner of the page
+/// - stroke (paint): Stroke to use for the grid lines. The `paint` of this stroke will
+///   determine the text color.
+/// - width (length): Total width of the grid
+/// - height (length): Total height of the grid
+/// - spacing (length, array): Spacing between grid lines. If an array is provided, the
+///   values are taken in (x, y) order. Cannot be provided alongside `divisions`.
+/// - divisions (int, array): Number of divisions along each axis. If an array is
+///   provided, the values are taken in (x, y) order. Cannot be provided alongside
+///   `spacing`.
+/// - square (bool): Whether to make the grid square. If `true`, and either `divisions`
+///   or `spacing` is provided, the smaller of the two values will be used for both axes
+///   to ensure each grid cell is square.
+/// - relative (bool): If `true` (default), the grid will be placed relative to the
+///   current container. If `false`, the grid will be placed relative to the top left
+///   corner of the page.
 #let rule-grid(
   dx: 0pt,
   dy: 0pt,
@@ -145,6 +165,8 @@
   })
 }
 
+/// Changes the default properties for margin notes. See documentation on
+/// `margin-note-defaults` for available options.
 #let set-margin-note-defaults(..defaults) = {
   defaults = defaults.named()
   margin-note-defaults.update(old => {
@@ -178,6 +200,9 @@
   })
 }
 
+/// Required for `margin-note` to work, since it informs `drafting` of the page setup.
+/// Since margins are not yet automatically identifiable, they must be specified
+/// manually.
 #let set-page-properties(margin-right: 0pt, margin-left: 0pt, ..kwargs) = {
   let kwargs = kwargs.named()
   layout(layout-size => {
