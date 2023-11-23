@@ -375,8 +375,7 @@
 ///
 /// - body (content): Margin note contents, usually text
 /// - par-break (bool): Whether to break the paragraph after the note, which places
-///   the note on its own line. Beware: inline notes with `par-break: false` cannot
-///   have a fill and will behave strangely when oversized content is present.
+///   the note on its own line.
 /// - ..kwargs (dictionary): Additional properties to apply to the note.
 ///
 #let inline-note(body, par-break: true, ..kwargs) = {
@@ -393,7 +392,7 @@
     // else
     let dummy-rect = rect-func(stroke: properties.stroke)
     let s = dummy-rect.stroke
-    let bottom = 0.5em
+    let bottom = 0.35em
     let top = 1em
     set text(top-edge: "ascender", bottom-edge: "descender")
     let cap-line = {
@@ -401,6 +400,9 @@
       box(height: top, outset: (bottom: bottom + t, top: t), stroke: (left: properties.stroke))
     }
     let new-body = underline(stroke: properties.stroke, [ #body ], offset: bottom)
+    if dummy-rect.has("fill") and dummy-rect.fill != auto {
+      new-body = highlight(new-body, fill: dummy-rect.fill)
+    }
     new-body = [
       #underline([#cap-line#new-body#cap-line], stroke: properties.stroke, offset: -top)
     ]
