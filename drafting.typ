@@ -390,8 +390,14 @@
       return rect-func(body, stroke: properties.stroke)
     }
     // else
-    let dummy-rect = rect-func(stroke: properties.stroke)
-    let s = dummy-rect.stroke
+    let s = none
+    let dummy-rect = rect-func(stroke: properties.stroke)[dummy content]
+    let default-rect = rect(stroke: properties.stroke)[dummy content]
+    if "stroke" in dummy-rect.fields() {
+      s = dummy-rect.stroke
+    } else {
+      s = default-rect.stroke
+    }
     let bottom = 0.35em
     let top = 1em
     set text(top-edge: "ascender", bottom-edge: "descender")
