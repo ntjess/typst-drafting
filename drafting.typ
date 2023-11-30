@@ -291,7 +291,7 @@
   // Boxing prevents forced paragraph breaks
   box[
     #place(path(stroke: props.stroke, ..path-pts))
-    #place(dx: dist-to-margin + 1*pct, dy: dy, note-rect)
+    #place(dx: dist-to-margin + 1*pct, dy: dy, [#note-rect<margin-note>])
   ]
   _update-descent("right", dy, anchor-y, note-rect)
 }
@@ -317,7 +317,7 @@
   // Boxing prevents forced paragraph breaks
   box[
     #place(path(stroke: props.stroke, ..path-pts))
-    #place(dx: dist-to-margin + 1*pct, dy: dy, note-rect)
+    #place(dx: dist-to-margin + 1*pct, dy: dy, [#note-rect<margin-note>])
   ]
   _update-descent("left", dy, anchor-y, note-rect)
 }
@@ -329,7 +329,7 @@
 ///   move the note up, positive values move the note down
 /// - ..kwargs (dictionary): Additional properties to apply to the note. Accepted values are keys from `margin-note-defaults`.
 #let margin-note(body, dy: auto, ..kwargs) = {
-  _run-func-on-first-loc(label-name: "margin-note", loc => {
+  _run-func-on-first-loc(loc => {
     let pos = loc.position()
     let properties = margin-note-defaults.at(loc) + kwargs.named()
     let (anchor-x, anchor-y) = (pos.x - properties.page-offset-x, pos.y)
@@ -387,7 +387,7 @@
 
     let rect-func = properties.at("rect")
     if par-break {
-      return rect-func(body, stroke: properties.stroke)
+      return [#rect-func(body, stroke: properties.stroke)<inline-note>]
     }
     // else
     let s = none
@@ -411,6 +411,7 @@
     }
     new-body = [
       #underline([#cap-line#new-body#cap-line], stroke: properties.stroke, offset: -top)
+      <inline-note>
     ]
     new-body
 
