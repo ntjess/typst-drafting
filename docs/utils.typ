@@ -48,12 +48,13 @@
   preamble
 }
 
-#let eval-example(source, ..scope) = {
-  let preamble = _build-preamble(scope.named())
-  eval(
+#let eval-example(source, ..scope) = [
+  #let preamble = _build-preamble(scope.named())
+  #eval(
     (preamble + "[" + source + "]"), scope: scope.named()
   )
-}
+  <example-eval-result>
+]
 
 #let _bidir-grid(direction, ..args) = {
   let grid-kwargs = (:)
