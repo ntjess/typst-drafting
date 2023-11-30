@@ -5,20 +5,9 @@
 
 #let _COMPILE-PNG = false
 
-#let normal-show(content) = {
+#show raw.where(lang: "example"): content => {
   set text(font: "Linux Libertine")
   example-with-source(content.text, drafting: drafting)
-}
-
-#let png-show(content) = {
-  set text(font: "Linux Libertine")
-  eval-example(content.text, drafting: drafting)
-}
-
-#show raw.where(lang: "example"): if _COMPILE-PNG {
-  png-show
-} else {
-  normal-show
 }
 
 
@@ -93,10 +82,10 @@ Even deeper customization is possible by overriding the default `rect`:
 
 #lorem(20)
 #margin-note(dy: -25pt)[Why not use sticky notes in the margin?]
-```
 
-// Undo changes from last example
+// Undo changes from this example
 #set-margin-note-defaults(rect: rect, stroke: red)
+```
 
 == Multiple document reviewers
 
@@ -129,6 +118,8 @@ Even deeper customization is possible by overriding the default `rect`:
 #lorem(20)
 #margin-note[This will respect the global "hidden" state]
 #margin-note(hidden: false, dy: -2.5em)[This note will never be hidden]
+// Undo these changes
+#set-margin-note-defaults(hidden: false)
 ```
 
 #set page(margin: (left: 0.8in, right: 0.8in)) if not _COMPILE-PNG
@@ -137,10 +128,6 @@ Even deeper customization is possible by overriding the default `rect`:
 == Precise placement: rule grid
 Need to measure space for fine-tuned positioning? You can use `rule-grid` to cross-hatch
 the page with rule lines:
-
-#if _COMPILE-PNG {
-  v(1em)
-}
 
 ```example
 #rule-grid(width: 10cm, height: 3cm, spacing: 20pt)
@@ -181,8 +168,5 @@ What about absolutely positioning something regardless of margin and relative lo
 })
 #v(0.5in)
 ```
-#if _COMPILE-PNG {
-  v(1em)
-}
 
 The "rule-grid" also supports absolute placement at the top-left of the page by passing `relative: false`. This is helpful for "rule"-ing the whole page.
