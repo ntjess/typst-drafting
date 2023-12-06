@@ -349,14 +349,14 @@
       let (cur-page, descents) = _get-descent-at-page(loc)
       let cur-descent = descents.at(repr(properties.side))
       dy = calc.max(0pt, cur-descent - loc.position().y)
-      // Notes at the beginning of a line misreport their y position, since immediately
-      // after they are placed, a new line is created which moves the note down.
-      // A hacky fix is to subtract a line's worth of space from the y position when
-      // detecting a note at the beginning of a line.
-      // TODO: When https://github.com/typst/typst/issues/763 is resolved,
-      // `get` this value from `par.leading` instead of hardcoding`
-      if anchor-x == properties.margin-left {
-        dy -= 0.65em
+      // Notes at the end of a line misreport their x position, the placed box will wrap
+      // onto the next line and invalidate the calculated distance.
+      // A hacky fix is to manually replace the x position to an offset of 0.
+      let is-end-of-line = calc.abs(
+        anchor-x - properties.margin-left - properties.page-width - properties.page-offset-x
+      ) < 0.1pt
+      if is-end-of-line {
+        anchor-x -= properties.page-width
       }
     }
 
