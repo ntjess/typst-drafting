@@ -189,11 +189,16 @@
   }
   locate(loc => {
     let props = margin-note-defaults.at(loc)
-    let (page-width, r-width, l-width) = (
+    let (page-width, r-width, l-width) = if calc.odd(loc.position().page) {(
       props.page-width,
       props.margin-right,
       props.margin-left,
-    )
+    )} else {
+     (
+      props.page-width,
+      props.margin-left,
+      props.margin-right,
+    ) }
     let r(w) = rect(width: w, ..rect-kwargs)
     absolute-place(r(l-width - padding))
     absolute-place(dx: page-width + l-width + padding, r(r-width - padding))
@@ -333,14 +338,17 @@
     let pos = loc.position()
     let properties = margin-note-defaults.at(loc) + kwargs.named()
     let (anchor-x, anchor-y) = (pos.x - properties.page-offset-x, pos.y)
-    
+
     if properties.hidden {
       return
     }
 
     if properties.side == auto {
       let (r, l) = (properties.margin-right, properties.margin-left)
-      properties.side = if calc.max(r, l) == r {right} else {left}
+      properties.side = if calc.odd(pos.page) {right} else {left}
+      properties.margin-right = if calc.odd(pos.page) {r} else {l}
+      properties.margin-left = if calc.odd(pos.page) {l} else {r}
+      // set-margin-note-defaults(..properties)
     }
 
     // `let` assignment allows mutating argument
@@ -365,6 +373,7 @@
     } else {
       _margin-note-left
     }
+
     margin-func(
       body, dy, anchor-x, anchor-y, ..properties
     )
