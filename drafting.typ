@@ -329,7 +329,7 @@
 ///   move the note up, positive values move the note down
 /// - ..kwargs (dictionary): Additional properties to apply to the note. Accepted values are keys from `margin-note-defaults`.
 #let margin-note(body, dy: auto, ..kwargs) = {
-  _run-func-on-first-loc(loc => {
+  locate(loc => {
     let pos = loc.position()
     let properties = margin-note-defaults.at(loc) + kwargs.named()
     let (anchor-x, anchor-y) = (pos.x - properties.page-offset-x, pos.y)
