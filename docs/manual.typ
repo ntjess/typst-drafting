@@ -3,6 +3,17 @@
 #import "../drafting.typ"
 #let module = tidy.parse-module(read("../drafting.typ"), scope: (drafting: drafting))
 
+// Inspiration: https://github.com/typst/packages/blob/main/packages/preview/cetz/0.1.0/manual.typ
+// This is a wrapper around typst-doc show-module that
+// strips all but one function from the module first.
+// As soon as typst-doc supports examples, this is no longer
+// needed.
+#let show-module-fn(module, fn, ..args) = {
+  module.functions = module.functions.filter(f => f.name == fn)
+  tidy.show-module(module, ..args.pos(), ..args.named(),
+                   show-module-name: false)
+}
+
 #show raw.where(lang: "standalone"): text => {
   standalone-margin-note-example(raw(text.text, lang: "typ"))
 }
@@ -34,7 +45,7 @@
 #margin-note[right note]
 #margin-note(stroke: green)[Green stroke, auto-offset]
 #lorem(10)
-#margin-note(side: left, dy: -10pt)[Manual offset]
+#margin-note(side: left, dy: 10pt)[Manual offset]
 #lorem(10)
 ```
 

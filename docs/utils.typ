@@ -1,23 +1,8 @@
-////
-// Inspiration: https://github.com/typst/packages/blob/main/packages/preview/cetz/0.1.0/manual.typ
-////
-
 #import "../drafting.typ"
-#import "@preview/tidy:0.1.0"
-
 #let example-box = box.with(fill: white.darken(3%), inset: 0.5em, radius: 0.5em, width: 100%)
-// This is a wrapper around typs-doc show-module that
-// strips all but one function from the module first.
-// As soon as typst-doc supports examples, this is no longer
-// needed.
-#let show-module-fn(module, fn, ..args) = {
-  module.functions = module.functions.filter(f => f.name == fn)
-  tidy.show-module(module, ..args.pos(), ..args.named(),
-                   show-module-name: false)
-}
 
 
-#let dummy-page(content, width, height: auto, margin-left, margin-right) = {
+#let dummy-page(width, height: auto, margin-left, margin-right, content) = {
   let total-width = width + margin-left + margin-right
   style(styles => {
     let content-box = box(
@@ -30,10 +15,9 @@
     )
     let box-height = measure(content-box, styles).height
     let height = if height == auto {box-height}
-    example-box(height: height, width: total-width)
-    place(
-      dx: margin-left,
-      dy: -height,
+    place(example-box(height: height, width: total-width, radius: 0pt))
+    pad(
+      left: margin-left,
       content-box
     )
   })
@@ -88,7 +72,7 @@
     )
     let preamble = "#let margin-note = margin-note.with(" + props + ")\n"
     let content = eval-example(preamble + source.text, ..scope)
-    dummy-page(content, w, l, r)
+    dummy-page(w, l, r, content)
 }
 
 #let standalone-margin-note-example(
