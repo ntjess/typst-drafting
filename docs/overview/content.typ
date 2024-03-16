@@ -1,45 +1,34 @@
-#import "../drafting.typ": *
-#import "../drafting.typ"
+#let pkg-version = "0.2.0"
 
-#import "utils.typ": *
-
-#let _COMPILE-PNG = false
-
-#show raw.where(lang: "example"): content => {
-  set text(font: "Linux Libertine")
-  example-with-source(content.text, drafting: drafting)
+#let counter = counter("examples")
+#let COMPILE-FOR-README = true
+#show raw.where(lang: "example"): it => {
+  [#metadata(it.text)<input-text>]
+  it
+  counter.step()
+  if COMPILE-FOR-README [
+    ![](example-#counter.display();.png)
+  ]
 }
-
-
-#let (l-margin, r-margin) = (1in, 2in)
-#let t-b-margin = if _COMPILE-PNG {
-  0.1in
-} else {
-  0.8in
-}
-#set page(
-  margin: (left: l-margin, right: r-margin, rest: t-b-margin),
-  paper: "us-letter",
-  height: auto
-)
-#set-page-properties(margin-left: l-margin, margin-right: r-margin)
 
 = Margin Notes
 == Setup
-Unfortunately `typst` doesn't expose margins to calling functions, so you'll need to set them explicitly. This is done using `set-page-properties` *before you place any content*:
+`drafting` exists in the official typst package repository, so the recommended approach is to import it from the `preview` namespace:
+#raw(lang: "typst", block: true, "#import \"@preview/drafting:" + pkg-version + "\"")
 
+Margin notes cannot lay themselves out correctly until they know your page size and margins.
+To this end, make sure call `#set-page-properties()` *after* configuring your page size/margins:
 ```typ
-// At the top of your source file
-// Of course, you can substitute any margin numbers you prefer
-// provided the page margins match what you pass to `set-page-properties`
-#import "../drafting.typ": *
-#let (l-margin, r-margin) = (1in, 2in)
+// Of course, you can set whatever margin values you prefer
 #set page(
-  margin: (left: l-margin, right: r-margin, rest: 0.1in),
-  paper: "us-letter",
+  margin: (right: 2in), paper: "us-letter"
 )
-#set-page-properties(margin-left: l-margin, margin-right: r-margin)
+
+// This is important! Call it whenever your page is reconfigured.
+#set-page-properties()
 ```
+#text(red)[Note:] `drafting` does not yet support `inside`/`outside` margins.
+  Follow #link("https://github.com/typst/typst/issues/3636") for updates.
 
 == The basics
 ```example
@@ -47,17 +36,18 @@ Unfortunately `typst` doesn't expose margins to calling functions, so you'll nee
 #margin-note(side: left)[Hello, world!]
 #lorem(10)
 #margin-note[Hello from the other side]
-
-#lorem(25)
 #margin-note[When notes are about to overlap, they're automatically shifted]
 #margin-note(stroke: aqua + 3pt)[To avoid collision]
 #lorem(25)
+#margin-note(stroke: green, side: left)[You can provide two positional arguments if you want to highlight a phrase associated with your note.][The first is text which should be inline-noted, and the second is the standard margin note.]
 
 #let caution-rect = rect.with(inset: 1em, radius: 0.5em, fill: orange.lighten(80%))
 #inline-note(rect: caution-rect)[
-  Be aware that notes will stop automatically avoiding collisions if 4 or more notes
-  overlap. This is because `typst` warns when the layout doesn't resolve after 5 attempts
-  (initial layout + adjustment for each note)
+  Be aware that `typst` will complain when 4 notes overlap, and stop automatically avoiding collisions when 5 or more notes
+  overlap. This is because the compiler stops attempting to reposition notes after a few attempts
+  (initial layout + adjustment for each note).
+
+  You can manually adjust the position of notes with `dy` to silence the warning.
 ]
 ```
 
@@ -65,9 +55,11 @@ Unfortunately `typst` doesn't expose margins to calling functions, so you'll nee
 All function defaults are customizable through updating the module state:
 
 ```example
-#lorem(4) #margin-note(dy: -2em)[Default style]
+#lorem(14) #margin-note[Default style]
+#lorem(10)
 #set-margin-note-defaults(stroke: orange, side: left)
-#lorem(4) #margin-note[Updated style]
+#margin-note[Updated style]
+#lorem(10)
 ```
 
 Even deeper customization is possible by overriding the default `rect`:
@@ -76,12 +68,13 @@ Even deeper customization is possible by overriding the default `rect`:
 #import "@preview/colorful-boxes:1.1.0": stickybox
 
 #let default-rect(stroke: none, fill: none, width: 0pt, content) = {
+  set text(0.9em)
   stickybox(rotation: 30deg, width: width/1.5, content)
 }
 #set-margin-note-defaults(rect: default-rect, stroke: none, side: right)
 
 #lorem(20)
-#margin-note(dy: -25pt)[Why not use sticky notes in the margin?]
+#margin-note(dy: -5em)[Why not use sticky notes in the margin?]
 
 // Undo changes from this example
 #set-margin-note-defaults(rect: rect, stroke: red)
@@ -92,12 +85,12 @@ Even deeper customization is possible by overriding the default `rect`:
 ```example
 #let reviewer-a = margin-note.with(stroke: blue)
 #let reviewer-b = margin-note.with(stroke: purple)
-#lorem(20)
+#lorem(10)
 #reviewer-a[Comment from reviewer A]
-#lorem(15)
-#reviewer-b(side: left)[Comment from reviewer B]
+#lorem(5)
+#reviewer-b(side: left)[Reviewer B comment]
+#lorem(10)
 ```
-
 
 == Inline Notes
 ```example
@@ -122,7 +115,7 @@ Even deeper customization is possible by overriding the default `rect`:
 #set-margin-note-defaults(hidden: false)
 ```
 
-#set page(margin: (left: 0.8in, right: 0.8in)) if not _COMPILE-PNG
+#set page(margin: (left: 0.8in, right: 0.8in))
 
 = Positioning
 == Precise placement: rule grid
@@ -149,8 +142,8 @@ the page with rule lines:
 What about absolutely positioning something regardless of margin and relative location? `absolute-place` is your friend. You can put content anywhere:
 
 ```example
-#locate(loc => {
-  let (dx, dy) = (25%, loc.position().y)
+#context {
+  let (dx, dy) = (here().position().x, here().position().y)
   let content-str = (
     "This absolutely-placed box will originate at (" + repr(dx) + ", " + repr(dy) + ")"
     + " in page coordinates"
@@ -165,7 +158,7 @@ What about absolutely positioning something regardless of margin and relative lo
       [#align(center + horizon, content-str)]
     )
   )
-})
+}
 #v(0.5in)
 ```
 
