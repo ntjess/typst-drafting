@@ -11,7 +11,8 @@
 /// - `rect` (function): Function to use for drawing the margin note's border. This
 ///   function must accept positional `content` and keyword `width` arguments.
 /// - `side` (side): Which side of the page to place the margin note on. Must be `left`
-///   or `right`
+///   `right` or `auto`. When set to `auto`, the note will be placed on the
+///   side that it is closest to
 /// - `hidden` (bool): Whether to hide the margin note. This is useful for temporarily
 ///   disabling margin notes without removing them from the code
 #let margin-note-defaults = state(
@@ -398,9 +399,9 @@
       return
     }
 
+    // If properties.side is auto, place out if this note in the margin it is closest to
     if properties.side == auto {
-      let (r, l) = (properties.margin-right, properties.margin-left)
-      properties.side = if calc.max(r, l) == r { right } else { left }
+      properties.side = if pos.x > properties.page-width/2 {right} else {left}
     }
     for k in ("margin-right", "margin-left", "page-width") {
       if k not in properties or properties.at(k) == none {
