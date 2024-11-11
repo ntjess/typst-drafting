@@ -1,4 +1,4 @@
-#import "@preview/tidy:0.1.0"
+#import "@preview/tidy:0.3.0"
 #import "utils.typ": *
 #import "../drafting.typ"
 #let module = tidy.parse-module(read("../drafting.typ"), scope: (drafting: drafting))
@@ -10,8 +10,7 @@
 // needed.
 #let show-module-fn(module, fn, ..args) = {
   module.functions = module.functions.filter(f => f.name == fn)
-  tidy.show-module(module, ..args.pos(), ..args.named(),
-                   show-module-name: false)
+  tidy.show-module(module, ..args.pos(), ..args.named(), show-module-name: false, enable-cross-references: false)
 }
 
 #show raw.where(lang: "standalone"): text => {
@@ -23,12 +22,12 @@
 }
 
 #show raw.where(lang: "example"): content => {
-  set text(font: "Linux Libertine")
+  set text(font: "Libertinus Serif")
   example-with-source(content.text, drafting: drafting, direction: ltr)
 }
 
 #show raw.where(lang: "example-ttb"): content => {
-  set text(font: "Linux Libertine")
+  set text(font: "Libertinus Serif")
   example-with-source(content.text, drafting: drafting)
 }
 
