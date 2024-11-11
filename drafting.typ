@@ -194,9 +194,8 @@
 
 
 /// Required for `margin-note` to work, since it informs `drafting` of the page setup.
-/// Since margins are not yet automatically identifiable, they must be specified
-/// manually.
 #let set-page-properties(..kwargs) = {
+  show: place // Avoid extra whitespace
   context {
     let kwargs = kwargs.named()
     layout(size => {
@@ -364,23 +363,6 @@
   _update-descent("right", dy, anchor-y, note-rect, here().page())
 }
 
-#let resolve-left-right-margin(margin) = {
-  let finalize = x => if x == auto {
-    none
-  } else {
-    measure(h(x)).width
-  }
-  if margin == auto {
-    return (none, none)
-  }
-  if type(margin) == length {
-    return (finalize(margin),) * 2
-  }
-  if type(margin) == dictionary {
-    return (finalize(margin.left), finalize(margin.right))
-  }
-  return (none, none)
-}
 
 #let _margin-note-left(body, dy, anchor-x, anchor-y, ..props) = {
   props = props.named()
@@ -425,28 +407,13 @@
     inline-note(phrase, par-break: false, ..kwargs.named())
   }
   context {
-    let (l, r) = resolve-left-right-margin(page.margin)
-    let width = none
-    if l != none and r != none and page.width != auto {
-      width = page.width - l - r
-    }
-    let page-environment = (
-      page-width: width,
-      margin-right: r,
-      margin-left: l,
-    )
-    let existing = margin-note-defaults.get()
-    let missing = page-environment.keys().filter(k => existing.at(k) == none)
-    if missing.len() > 0 {
-      margin-note-defaults.update(old => {
-        for k in missing {
-          old.insert(k, page-environment.at(k))
-        }
-        old
-      })
+    let defaults = margin-note-defaults.get()
+    if none in (defaults.margin-right, defaults.margin-left, defaults.page-width) {
+      // `box` allows this call to be in the same paragraph context as the noted text
+      show: box
+      set-page-properties()
     }
   }
-
   context {
     let loc = here()
     let pos = loc.position()
