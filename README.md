@@ -6,31 +6,24 @@
 recommended approach is to import it from the `preview` namespace:
 
 ``` typst
-#import "@preview/drafting:0.2.0"
+#import "@preview/drafting:0.2.1"
 ```
 
 Margin notes cannot lay themselves out correctly until they know your
-page size and margins. To this end, make sure call
-`#set-page-properties()` **after** configuring your page size/margins:
+page size and margins. By default, they occupy nearly the entirety of
+the left or right margin, but you can provide explicit left/right bounds
+if desired:
 
 ``` typ
-// Of course, you can set whatever margin values you prefer
-#set page(
-  margin: (right: 2in), paper: "us-letter"
-)
-
-// This is important! Call it whenever your page is reconfigured.
-#set-page-properties()
+// Example:
+// Default margin in typst is 2.5cm, but we want to use 2cm
+// On the left
+#set-page-properties(margin-left: 2cm)
 ```
-
-Note: `drafting` does not yet support `inside`/`outside` margins. Follow
-<https://github.com/typst/typst/issues/3636> for updates.
 
 ## The basics
 
-<span id="input-text"></span>
-
-```typst
+``` typst
 #lorem(20)
 #margin-note(side: left)[Hello, world!]
 #lorem(10)
@@ -49,31 +42,25 @@ Note: `drafting` does not yet support `inside`/`outside` margins. Follow
   You can manually adjust the position of notes with `dy` to silence the warning.
 ]
 ```
-
-![](https://raw.github.com/ntjess/typst-drafting/v0.2.0/assets/example-1.png)
+![Example 1](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-1.png)
 
 ## Adjusting the default style
 
 All function defaults are customizable through updating the module
 state:
 
-<span id="input-text"></span>
-
-```typst
+``` typst
 #lorem(14) #margin-note[Default style]
 #lorem(10)
 #set-margin-note-defaults(stroke: orange, side: left)
 #margin-note[Updated style]
 #lorem(10)
 ```
-
-![](https://raw.github.com/ntjess/typst-drafting/v0.2.0/assets/example-2.png)
+![Example 2](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-2.png)
 
 Even deeper customization is possible by overriding the default `rect`:
 
-<span id="input-text"></span>
-
-```typst
+``` typst
 #import "@preview/colorful-boxes:1.1.0": stickybox
 
 #let default-rect(stroke: none, fill: none, width: 0pt, content) = {
@@ -88,14 +75,11 @@ Even deeper customization is possible by overriding the default `rect`:
 // Undo changes from this example
 #set-margin-note-defaults(rect: rect, stroke: red)
 ```
-
-![](https://raw.github.com/ntjess/typst-drafting/v0.2.0/assets/example-3.png)
+![Example 3](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-3.png)
 
 ## Multiple document reviewers
 
-<span id="input-text"></span>
-
-```typst
+``` typst
 #let reviewer-a = margin-note.with(stroke: blue)
 #let reviewer-b = margin-note.with(stroke: purple)
 #lorem(10)
@@ -104,14 +88,11 @@ Even deeper customization is possible by overriding the default `rect`:
 #reviewer-b(side: left)[Reviewer B comment]
 #lorem(10)
 ```
-
-![](https://raw.github.com/ntjess/typst-drafting/v0.2.0/assets/example-4.png)
+![Example 4](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-4.png)
 
 ## Inline Notes
 
-<span id="input-text"></span>
-
-```typst
+``` typst
 #lorem(10)
 #inline-note[The default inline note will split the paragraph at its location]
 #lorem(10)
@@ -120,14 +101,11 @@ Even deeper customization is possible by overriding the default `rect`:
 ]
 #lorem(10)
 ```
-
-![](https://raw.github.com/ntjess/typst-drafting/v0.2.0/assets/example-5.png)
+![Example 5](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-5.png)
 
 ## Hiding notes for print preview
 
-<span id="input-text"></span>
-
-```typst
+``` typst
 #set-margin-note-defaults(hidden: true)
 
 #lorem(20)
@@ -136,8 +114,7 @@ Even deeper customization is possible by overriding the default `rect`:
 // Undo these changes
 #set-margin-note-defaults(hidden: false)
 ```
-
-![](https://raw.github.com/ntjess/typst-drafting/v0.2.0/assets/example-6.png)
+![Example 6](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-6.png)
 
 # Positioning
 
@@ -146,9 +123,7 @@ Even deeper customization is possible by overriding the default `rect`:
 Need to measure space for fine-tuned positioning? You can use
 `rule-grid` to cross-hatch the page with rule lines:
 
-<span id="input-text"></span>
-
-```typst
+``` typst
 #rule-grid(width: 10cm, height: 3cm, spacing: 20pt)
 #place(
   dx: 180pt,
@@ -163,8 +138,7 @@ Need to measure space for fine-tuned positioning? You can use
 // The rule grid doesn't take up space, so add it explicitly
 #v(3cm + 1em)
 ```
-
-![](https://raw.github.com/ntjess/typst-drafting/v0.2.0/assets/example-7.png)
+![Example 7](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-7.png)
 
 ## Absolute positioning
 
@@ -172,9 +146,7 @@ What about absolutely positioning something regardless of margin and
 relative location? `absolute-place` is your friend. You can put content
 anywhere:
 
-<span id="input-text"></span>
-
-```typst
+``` typst
 #context {
   let (dx, dy) = (here().position().x, here().position().y)
   let content-str = (
@@ -194,8 +166,7 @@ anywhere:
 }
 #v(0.5in)
 ```
-
-![](https://raw.github.com/ntjess/typst-drafting/v0.2.0/assets/example-8.png)
+![Example 8](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-8.png)
 
 The “rule-grid” also supports absolute placement at the top-left of the
 page by passing `relative: false`. This is helpful for “rule“-ing the
