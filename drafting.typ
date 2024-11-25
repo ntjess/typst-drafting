@@ -11,6 +11,7 @@
 ///   generally only useful if margin notes are applied inside a box/rect; at the page
 ///   level this can remain unspecified
 /// - `stroke` (paint): Stroke to use for the margin note's border and connecting line
+/// - `fill` (paint): Background to use for the note
 /// - `rect` (function): Function to use for drawing the margin note's border. This
 ///   function must accept positional `content` and keyword `width` arguments.
 /// - `side` (side): Which side of the page to place the margin note on. Must be `left`
@@ -28,6 +29,7 @@
     page-width: none,
     page-offset-x: 0in,
     stroke: red,
+    fill: white,
     rect: rect,
     side: auto,
     hidden: false,
@@ -271,6 +273,52 @@
   }
 }
 
+/// Show an outline of all todos
+///
+/// - title (string): Title of the outline
+/// - show-if-empty (bool): Whether to show the outline of there are no todos
+#let todo-outline(title: "List of Todos", show-if-empty: false) = context {
+  show outline.entry.where(
+    level: 1
+  ): it => {
+    // box with color, followed by content
+    show: box
+    [#it.body.children.first() #it.body.children.last()]
+    box(width: 1fr, repeat[.])
+    it.page
+  }
+  // only show if there actually are any todos
+  if show-if-empty or counter(figure.where(kind: "todo")).final().first() > 0 {
+    page(outline(target: figure.where(kind: "todo"), title: title))
+  }
+}
+
+
+// invisible figure, s.t. we can reference it in the outline
+#let _todo-outline-entry(props, body) = hide(
+  box(
+    height: 0pt,
+    width: 0pt,
+    figure(
+      none,
+      kind: "todo",
+      // colored box in outline
+      supplement: box(
+        // create a black stroke, if fill and stroke are identical
+        stroke: if props.stroke == props.fill {
+          black + .5pt
+        } else {
+          props.stroke
+        },
+        fill: props.fill,
+        height: 11pt, width: 11pt
+      ),
+      caption: body,
+      outlined: true,
+    )
+  )
+)
+
 /// Place a note inline with the text body.
 ///
 /// - body (content): Margin note contents, usually text
@@ -287,12 +335,12 @@
 
     let rect-func = properties.at("rect")
     if par-break {
-      return [#rect-func(body, stroke: properties.stroke)<inline-note>]
+      return [#rect-func(body, stroke: properties.stroke, fill: properties.fill)<inline-note>]
     }
     // else
     let s = none
-    let dummy-rect = rect-func(stroke: properties.stroke)[dummy content]
-    let default-rect = rect(stroke: properties.stroke)[dummy content]
+    let dummy-rect = rect-func(stroke: properties.stroke, fill: properties.fill)[dummy content]
+    let default-rect = rect(stroke: properties.stroke, fill: properties.fill)[dummy content]
     if "stroke" in dummy-rect.fields() {
       s = dummy-rect.stroke
     } else {
@@ -307,7 +355,7 @@
       } else {
         s.thickness / 2
       }
-      box(height: top, outset: (bottom: bottom + t, top: t), stroke: (left: properties.stroke))
+      box(height: top, outset: (bottom: bottom + t, top: t), stroke: (left: properties.stroke), fill: properties.fill)
     }
     let new-body = underline(stroke: properties.stroke, [ #body ], offset: bottom)
     if dummy-rect.has("fill") and dummy-rect.fill != auto {
@@ -391,6 +439,7 @@
   dy += text-offset
   let note-rect = props.at("rect")(
     stroke: props.stroke,
+    fill: props.fill,
     width: right-width,
     body,
   )
@@ -420,6 +469,7 @@
   dy += text-offset
   let note-rect = props.at("rect")(
     stroke: props.stroke,
+    fill: props.fill,
     width: box-width,
     body,
   )
@@ -427,6 +477,7 @@
   box[
     #place(path(stroke: props.stroke, ..path-pts))
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
+    #_todo-outline-entry(props, body)
   ]
   _update-descent("left", dy, anchor-y, note-rect, here().page())
 }
@@ -465,7 +516,7 @@
     }
 
     // Overwrite the properties for left / right margins
-    // This way we only need to calculate this once.
+    // This way we only need to calculate this once
     if page.margin != auto and "inside" in page.margin.keys() {
       if calc.odd(pos.page) == (properties.page-binding-left) {
         properties.at("margin-left") = properties.margin-inside
