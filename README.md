@@ -42,6 +42,7 @@ if desired:
   You can manually adjust the position of notes with `dy` to silence the warning.
 ]
 ```
+
 ![Example 1](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-1.png)
 
 ## Adjusting the default style
@@ -56,6 +57,7 @@ state:
 #margin-note[Updated style]
 #lorem(10)
 ```
+
 ![Example 2](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-2.png)
 
 Even deeper customization is possible by overriding the default `rect`:
@@ -75,6 +77,7 @@ Even deeper customization is possible by overriding the default `rect`:
 // Undo changes from this example
 #set-margin-note-defaults(rect: rect, stroke: red)
 ```
+
 ![Example 3](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-3.png)
 
 ## Multiple document reviewers
@@ -88,6 +91,7 @@ Even deeper customization is possible by overriding the default `rect`:
 #reviewer-b(side: left)[Reviewer B comment]
 #lorem(10)
 ```
+
 ![Example 4](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-4.png)
 
 ## Inline Notes
@@ -101,6 +105,7 @@ Even deeper customization is possible by overriding the default `rect`:
 ]
 #lorem(10)
 ```
+
 ![Example 5](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-5.png)
 
 ## Hiding notes for print preview
@@ -114,7 +119,57 @@ Even deeper customization is possible by overriding the default `rect`:
 // Undo these changes
 #set-margin-note-defaults(hidden: false)
 ```
+
 ![Example 6](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-6.png)
+
+## LaTeX like todonotes
+
+```typ
+#set page("a6", flipped: true, margin: (x: 3cm))
+
+#let r(..kwargs, body) = place(top + left, dy: -8pt, float: true, clearance: 0pt,
+  rect(..kwargs, radius: 4pt, stroke: .5pt + black, text(size: 9pt, body))
+)
+#set-margin-note-defaults(rect: r)
+
+#let todonote = margin-note.with(fill: orange, stroke: orange)
+#let todonote-green = margin-note.with(fill: green, stroke: green)
+
+#lorem(10)
+#todonote[I am styled like the default todonote from LaTeX.]
+#lorem(10)
+#todonote-green[And I am just green]
+#lorem(20)
+#margin-note(side: left, rect: rect)[Default styled]
+```
+
+![Example 9](assets/example-9.png)
+
+## Note fill
+
+```typ
+#set page(margin: (inside: 2.5cm, outside: 3.5cm))
+#set-page-properties()
+
+#set-margin-note-defaults(fill: purple.lighten(80%), stroke: purple + 2pt, rect: rect)
+
+#lorem(10)
+#margin-note[Notes change side dynamically if margins are not even]
+#lorem(20)
+#margin-note(side: right)[But can still be placed explicitly]
+```
+
+![Example 10](assets/example-10.png)
+
+## Note outline
+
+```typ
+// optionally provide `title`
+// and `show-if-empty`
+#todo-outline()
+```
+
+![Example 11](assets/example-11.png)
 
 # Positioning
 
@@ -138,6 +193,7 @@ Need to measure space for fine-tuned positioning? You can use
 // The rule grid doesn't take up space, so add it explicitly
 #v(3cm + 1em)
 ```
+
 ![Example 7](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-7.png)
 
 ## Absolute positioning
@@ -166,8 +222,10 @@ anywhere:
 }
 #v(0.5in)
 ```
+
 ![Example 8](https://www.github.com/ntjess/typst-drafting/raw/v0.2.1/assets/example-8.png)
 
 The “rule-grid” also supports absolute placement at the top-left of the
 page by passing `relative: false`. This is helpful for “rule“-ing the
 whole page.
+
