@@ -2,6 +2,9 @@
 /// globally by calling `set-margin-note-defaults`. Available options are:
 /// - `margin-right` (length): Size of the right margin
 /// - `margin-left` (length): Size of the left margin
+/// - `margin-inside` (length): Size of the inside margin
+/// - `margin-outside` (length): Size of the outside margin
+/// - `page-binding-left` (bool): Whether the page is bound on the left
 /// - `page-width` (length): Width of the page/container. This is automatically
 ///   inferrable when using `set-page-properties`
 /// - `page-offset-x` (length): Horizontal offset of the page/container. This is
@@ -19,17 +22,18 @@
   (
     margin-right: none,
     margin-left: none,
+    margin-inside: none,
+    margin-outside: none,
+    page-binding-left: true,
     page-width: none,
     page-offset-x: 0in,
     stroke: red,
     rect: rect,
     side: auto,
     hidden: false,
-    rect-keys: ("stroke", "width"),
   ),
 )
 #let note-descent = state("note-descent", (:))
-#let _page-sizer = state("page-sizer", none)
 
 /// Place content at a specific location on the page relative to the top left corner
 /// of the page, regardless of margins, current container, etc.
@@ -199,32 +203,68 @@
   context {
     let kwargs = kwargs.named()
     layout(size => {
-      let margin = page.margin
-      if type(margin) != dictionary {
-        margin = (left: margin, right: margin)
-      }
-      if (auto in (margin.left, margin.right) and (page.width, page.height) == (auto, auto)) {
-        panic("If the page width *and* height are set to `auto`, neither left nor right margin" + " can be `auto`. Got (left, right) margin " + repr((
+      let margin = (
+        left: none,
+        right: none,
+        inside: none,
+        outside: none,
+      )
+      if type(page.margin) != dictionary {
+        margin.left = page.margin
+        margin.right = page.margin
+      } else {
+        if "right" in page.margin.keys() {
+          margin.right = page.margin.right
+          margin.left = page.margin.left
+        } else if "inside" in page.margin.keys() {
+          margin.inside = page.margin.inside
+          margin.outside = page.margin.outside
+        }
+      } 
+
+      if (page.width, page.height) == (auto, auto) {
+        if ("right" in margin.keys() and auto in (margin.left, margin.right)) {
+          panic("If the page width *and* height are set to `auto`, neither left nor right margin" + " can be `auto`. Got (left, right) margin " + repr((
           margin.left,
           margin.right,
-        )) + ", and page (width, height) " + repr((page.width, page.height)))
+          )) + ", and page (width, height) " + repr((page.width, page.height)))
+        }
+        if ("inside" in margin.keys() and auto in (margin.inside, margin.outside)) {
+          panic("If the page width *and* height are set to `auto`, neither inside nor outside margin" + " can be `auto`. Got (inside, outside) margin " + repr((
+            margin.inside,
+            margin.outside,
+          )) + ", and page (width, height) " + repr((page.width, page.height)))
+        }
       }
       // https://github.com/typst/typst/issues/3636#issuecomment-1992541661
       let page-dims = (page.width, page.height).filter(x => x != auto)
+      let auto-size = 2.5 / 21 * calc.min(..page-dims)
+
       let defaults = (
         margin-left: margin.left,
         margin-right: margin.right,
+        margin-inside: margin.inside,
+        margin-outside: margin.outside,
       )
       for (k, v) in defaults {
         if v == auto {
-          defaults.at(k) = 2.5 / 21 * calc.min(..page-dims)
-        } else if type(v) == type(10pt - 100%) {
+          defaults.at(k) = auto-size
+        } else if type(v) == relative {
           defaults.at(k) = v.length
-        }
+        } // ignore if none
       }
+      // NOTE: auto binding is dependent on text-direction which is not inferrable.
+      // Thus, we just assume ltr, unless bindis is set explicitly.
+      let binding-left = if page.binding == auto {
+          true
+      } else {
+        page.binding == left
+      }
+
       set-margin-note-defaults(
         ..defaults,
         page-width: size.width,
+        page-binding-left: binding-left,
         ..kwargs,
       )
     })
@@ -311,7 +351,6 @@
 }
 
 #let _get-current-descent(descents-dict, page-number: auto) = {
-  // let page-cnt = str(here().page())
   if page-number == auto {
     page-number = descents-dict.keys().at(-1, default: "0")
   } else {
@@ -398,7 +437,7 @@
 /// - dy (length): Vertical offset from the note's location -- negative values
 ///   move the note up, positive values move the note down
 /// - ..kwargs (dictionary): Additional properties to apply to the note. Accepted values are keys from `margin-note-defaults`.
-#let margin-note(body, dy: auto, ..kwargs) = {
+#let margin-note(body, dy: auto, ..kwargs) = [ #h(0pt) #{ // h(0pt) forces here().position() to take paragraph indent into account
   let phrase = none
   if kwargs.pos().len() > 0 {
     (phrase, body) = (body, kwargs.pos().at(0))
@@ -408,20 +447,33 @@
   }
   context {
     let defaults = margin-note-defaults.get()
-    if none in (defaults.margin-right, defaults.margin-left, defaults.page-width) {
+    if defaults.page-width == none or (
+      none in (defaults.margin-left, defaults.margin-right) and
+      none in (defaults.margin-inside, defaults.margin-outside)) {
       // `box` allows this call to be in the same paragraph context as the noted text
       show: box
       set-page-properties()
     }
   }
   context {
-    let loc = here()
-    let pos = loc.position()
+    let pos = here().position()
     let properties = margin-note-defaults.get() + kwargs.named()
     let (anchor-x, anchor-y) = (pos.x - properties.page-offset-x, pos.y)
 
     if properties.hidden {
       return
+    }
+
+    // Overwrite the properties for left / right margins
+    // This way we only need to calculate this once.
+    if page.margin != auto and "inside" in page.margin.keys() {
+      if calc.odd(pos.page) == (properties.page-binding-left) {
+        properties.at("margin-left") = properties.margin-inside
+        properties.at("margin-right") = properties.margin-outside
+      } else {
+        properties.at("margin-left") = properties.margin-outside
+        properties.at("margin-right") = properties.margin-inside
+      }
     }
 
     for k in ("margin-right", "margin-left", "page-width") {
@@ -467,4 +519,4 @@
       ..properties,
     )
   }
-}
+}]
