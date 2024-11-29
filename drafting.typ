@@ -273,19 +273,20 @@
   }
 }
 
-/// Show an outline of all todos
+/// Show an outline of all notes
 ///
 /// - title (string): Title of the outline
 /// - show-if-empty (bool): Whether to show the outline of there are no todos
-#let todo-outline(title: "List of Todos", show-if-empty: false) = context {
+#let note-outline(title: "List of Todos", show-if-empty: false) = context {
   show outline.entry.where(
     level: 1
   ): it => {
-    // box with color, followed by content
-    show: box
-    [#it.body.children.first() #it.body.children.last()]
-    box(width: 1fr, repeat[.])
-    it.page
+    link(it.element.location())[
+      // box with color, followed by content
+      #it.body.children.first() #it.body.children.last()
+      #box(width: 1fr, repeat[.])
+      #it.page
+    ]
   }
   // only show if there actually are any todos
   if show-if-empty or counter(figure.where(kind: "todo")).final().first() > 0 {
@@ -293,9 +294,8 @@
   }
 }
 
-
 // invisible figure, s.t. we can reference it in the outline
-#let _todo-outline-entry(props, body) = hide(
+#let _note-outline-entry(props, body) = hide(
   box(
     height: 0pt,
     width: 0pt,
@@ -335,7 +335,10 @@
 
     let rect-func = properties.at("rect")
     if par-break {
-      return [#rect-func(body, stroke: properties.stroke, fill: properties.fill)<inline-note>]
+      return [
+        #rect-func(body, stroke: properties.stroke, fill: properties.fill)<inline-note>
+        #_note-outline-entry(properties, body)
+      ]
     }
     // else
     let s = none
@@ -364,6 +367,7 @@
     new-body = [
       #underline([#cap-line#new-body#cap-line], stroke: properties.stroke, offset: -top)
       <inline-note>
+      #_note-outline-entry(properties, body)
     ]
     new-body
   }
@@ -447,6 +451,7 @@
   box[
     #place(path(stroke: props.stroke, ..path-pts))
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
+    #_note-outline-entry(props, body)
   ]
   _update-descent("right", dy, anchor-y, note-rect, here().page())
 }
@@ -477,7 +482,7 @@
   box[
     #place(path(stroke: props.stroke, ..path-pts))
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
-    #_todo-outline-entry(props, body)
+    #_note-outline-entry(props, body)
   ]
   _update-descent("left", dy, anchor-y, note-rect, here().page())
 }

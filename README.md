@@ -166,7 +166,7 @@ Even deeper customization is possible by overriding the default `rect`:
 ```typ
 // optionally provide `title`
 // and `show-if-empty`
-#todo-outline()
+#note-outline()
 ```
 
 ![Example 11](assets/example-11.png)
@@ -228,4 +228,3 @@ anywhere:
 The “rule-grid” also supports absolute placement at the top-left of the
 page by passing `relative: false`. This is helpful for “rule“-ing the
 whole page.
-
