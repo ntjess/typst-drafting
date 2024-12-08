@@ -290,7 +290,7 @@
   }
   // only show if there actually are any todos
   if show-if-empty or counter(figure.where(kind: "todo")).final().first() > 0 {
-    page(outline(target: figure.where(kind: "todo"), title: title))
+    outline(target: figure.where(kind: "todo"), title: title)
   }
 }
 
