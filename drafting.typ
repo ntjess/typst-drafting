@@ -4,7 +4,7 @@
 /// - `margin-left` (length): Size of the left margin
 /// - `margin-inside` (length): Size of the inside margin
 /// - `margin-outside` (length): Size of the outside margin
-/// - `page-binding-left` (bool): Whether the page is bound on the left
+/// - `page-binding` (auto | alignment): Where the page is bound
 /// - `page-width` (length): Width of the page/container. This is automatically
 ///   inferrable when using `set-page-properties`
 /// - `page-offset-x` (length): Horizontal offset of the page/container. This is
@@ -25,11 +25,11 @@
     margin-left: none,
     margin-inside: none,
     margin-outside: none,
-    page-binding-left: true,
+    page-binding: auto,
     page-width: none,
     page-offset-x: 0in,
     stroke: red,
-    fill: white,
+    fill: none,
     rect: rect,
     side: auto,
     hidden: false,
@@ -198,6 +198,72 @@
   }
 }
 
+/// get direction of text based on defaults for the language
+/// https://github.com/typst/typst/blob/521ceae889f15f2a93683ab776cd86a423e5dbed/crates/typst-library/src/text/lang.rs#L109
+#let text-direction(dir, lang) = if dir == auto {
+  if lang in (
+    "ar", "dv", "fa", "he", "ks", "pa", "ps", "sd", "ug", "ur", "yi",
+  ) { rtl } else { ltr }
+} else {
+  dir
+}
+
+/// get margins of page
+#let _get-margins() = {
+  let margin = (
+    left: none,
+    right: none,
+    inside: none,
+    outside: none,
+  )
+  if type(page.margin) != dictionary {
+    margin.left = page.margin
+    margin.right = page.margin
+  } else {
+    if "right" in page.margin.keys() {
+      margin.right = page.margin.right
+      margin.left = page.margin.left
+    } else if "inside" in page.margin.keys() {
+      margin.inside = page.margin.inside
+      margin.outside = page.margin.outside
+    }
+  }
+
+  if (page.width, page.height) == (auto, auto) {
+    if ("right" in margin.keys() and auto in (margin.left, margin.right)) {
+      panic("If the page width *and* height are set to `auto`, neither left nor right margin" + " can be `auto`. Got (left, right) margin " + repr((
+      margin.left,
+      margin.right,
+      )) + ", and page (width, height) " + repr((page.width, page.height)))
+    }
+    if ("inside" in margin.keys() and auto in (margin.inside, margin.outside)) {
+      panic("If the page width *and* height are set to `auto`, neither inside nor outside margin" + " can be `auto`. Got (inside, outside) margin " + repr((
+        margin.inside,
+        margin.outside,
+      )) + ", and page (width, height) " + repr((page.width, page.height)))
+    }
+  }
+  // https://github.com/typst/typst/issues/3636#issuecomment-1992541661
+  let page-dims = (page.width, page.height).filter(x => x != auto)
+  let auto-size = 2.5 / 21 * calc.min(..page-dims)
+
+  let defaults = (
+    margin-left: margin.left,
+    margin-right: margin.right,
+    margin-inside: margin.inside,
+    margin-outside: margin.outside,
+  )
+  for (k, v) in defaults {
+    if v == auto {
+      defaults.at(k) = auto-size
+    } else if type(v) == relative {
+      defaults.at(k) = v.length
+    } // ignore if none
+  }
+
+  return defaults
+}
+
 
 /// Required for `margin-note` to work, since it informs `drafting` of the page setup.
 #let set-page-properties(..kwargs) = {
@@ -205,68 +271,20 @@
   context {
     let kwargs = kwargs.named()
     layout(size => {
-      let margin = (
-        left: none,
-        right: none,
-        inside: none,
-        outside: none,
-      )
-      if type(page.margin) != dictionary {
-        margin.left = page.margin
-        margin.right = page.margin
-      } else {
-        if "right" in page.margin.keys() {
-          margin.right = page.margin.right
-          margin.left = page.margin.left
-        } else if "inside" in page.margin.keys() {
-          margin.inside = page.margin.inside
-          margin.outside = page.margin.outside
-        }
-      } 
+      let margins = _get-margins()
 
-      if (page.width, page.height) == (auto, auto) {
-        if ("right" in margin.keys() and auto in (margin.left, margin.right)) {
-          panic("If the page width *and* height are set to `auto`, neither left nor right margin" + " can be `auto`. Got (left, right) margin " + repr((
-          margin.left,
-          margin.right,
-          )) + ", and page (width, height) " + repr((page.width, page.height)))
-        }
-        if ("inside" in margin.keys() and auto in (margin.inside, margin.outside)) {
-          panic("If the page width *and* height are set to `auto`, neither inside nor outside margin" + " can be `auto`. Got (inside, outside) margin " + repr((
-            margin.inside,
-            margin.outside,
-          )) + ", and page (width, height) " + repr((page.width, page.height)))
-        }
-      }
-      // https://github.com/typst/typst/issues/3636#issuecomment-1992541661
-      let page-dims = (page.width, page.height).filter(x => x != auto)
-      let auto-size = 2.5 / 21 * calc.min(..page-dims)
-
-      let defaults = (
-        margin-left: margin.left,
-        margin-right: margin.right,
-        margin-inside: margin.inside,
-        margin-outside: margin.outside,
-      )
-      for (k, v) in defaults {
-        if v == auto {
-          defaults.at(k) = auto-size
-        } else if type(v) == relative {
-          defaults.at(k) = v.length
-        } // ignore if none
-      }
-      // NOTE: auto binding is dependent on text-direction which is not inferrable.
-      // Thus, we just assume ltr, unless bindis is set explicitly.
-      let binding-left = if page.binding == auto {
-          true
+      let binding = if page.binding == auto {
+        if text-direction(text.dir, text.lang) == ltr {
+          left
+        } else { right }
       } else {
-        page.binding == left
+        page.binding
       }
 
       set-margin-note-defaults(
-        ..defaults,
+        ..margins,
         page-width: size.width,
-        page-binding-left: binding-left,
+        page-binding: binding,
         ..kwargs,
       )
     })
@@ -523,7 +541,7 @@
     // Overwrite the properties for left / right margins
     // This way we only need to calculate this once
     if page.margin != auto and "inside" in page.margin.keys() {
-      if calc.odd(pos.page) == (properties.page-binding-left) {
+      if calc.odd(pos.page) == (properties.page-binding == left) {
         properties.at("margin-left") = properties.margin-inside
         properties.at("margin-right") = properties.margin-outside
       } else {
