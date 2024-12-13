@@ -18,6 +18,7 @@
 ///   or `right`
 /// - `hidden` (bool): Whether to hide the margin note. This is useful for temporarily
 ///   disabling margin notes without removing them from the code
+/// - `caret-height` (length): Size of the caret from the text baseline
 #let margin-note-defaults = state(
   "margin-note-defaults",
   (
@@ -33,6 +34,7 @@
     rect: rect,
     side: auto,
     hidden: false,
+    caret-height: 1em,
   ),
 )
 #let note-descent = state("note-descent", (:))
@@ -452,8 +454,8 @@
   let path-pts = _path-from-diffs(
     // make an upward line before coming back down to go all the way to
     // the top of the lettering
-    (0pt, -1em),
-    (0pt, 1em + text-offset),
+    (0pt, -props.caret-height),
+    (0pt, props.caret-height + text-offset),
     (dist-to-margin, 0pt),
     (0pt, dy),
     (1*pct + right-width / 2, 0pt)
@@ -482,8 +484,8 @@
   let text-offset = 0.4em
   let box-width = props.margin-left - 4 * pct
   let path-pts = _path-from-diffs(
-    (0pt, -1em),
-    (0pt, 1em + text-offset),
+    (0pt, -props.caret-height),
+    (0pt, props.caret-height + text-offset),
     (-anchor-x + props.margin-left + 1 * pct, 0pt),
     (-2 * pct, 0pt),
     (0pt, dy),
