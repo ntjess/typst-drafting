@@ -296,48 +296,42 @@
 /// Show an outline of all notes
 ///
 /// - title (string): Title of the outline
-/// - show-if-empty (bool): Whether to show the outline of there are no todos
-#let note-outline(title: "List of Todos", show-if-empty: false) = context {
-  show outline.entry.where(
-    level: 1
-  ): it => {
-    link(it.element.location())[
-      // box with color, followed by content
-      #it.body.children.first() #it.body.children.last()
-      #box(width: 1fr, repeat[.])
-      #it.page
-    ]
-  }
-  // only show if there actually are any todos
-  if show-if-empty or counter(figure.where(kind: "todo")).final().first() > 0 {
-    outline(target: figure.where(kind: "todo"), title: title)
-  }
-}
+/// - level (int): Level of the heading
+/// - row-gutter (relative): Spacing between outline elements
+#let note-outline(title: "List of Todos", level: 1, row-gutter: 10pt) = context {
+  heading(level: level, title)
 
-// invisible figure, s.t. we can reference it in the outline
-#let _note-outline-entry(props, body) = hide(
-  box(
-    height: 0pt,
-    width: 0pt,
-    figure(
-      none,
-      kind: "todo",
-      // colored box in outline
-      supplement: box(
-        // create a black stroke, if fill and stroke are identical
-        stroke: if props.stroke == props.fill {
-          black + .5pt
-        } else {
-          props.stroke
-        },
-        fill: props.fill,
-        height: 11pt, width: 11pt
-      ),
-      caption: body,
-      outlined: true,
+  let notes = query(selector(<margin-note>).or(<inline-note>)).map(note => {
+    show: box // do not break entries across pages
+    link(
+      note.location().position(),
+      grid(
+        columns: (1em, 1fr, 10pt),
+        column-gutter: 5pt,
+        align: (top, bottom, bottom),
+        box(
+          fill: note.fill,
+          stroke: if note.stroke == none {
+            none
+          } else if note.stroke.paint != note.fill {
+            note.stroke.paint
+          } else {
+            black + .5pt
+          },
+          width: 1em - 2pt,
+          height: 1em - 2pt
+        ),
+        [#note.body #box(width: 1fr, repeat[.])],
+        [#note.location().page()]
+      )
     )
+  })
+
+  grid(
+    row-gutter: row-gutter,
+    ..notes
   )
-)
+}
 
 /// Place a note inline with the text body.
 ///
@@ -357,7 +351,6 @@
     if par-break {
       return [
         #rect-func(body, stroke: properties.stroke, fill: properties.fill)<inline-note>
-        #_note-outline-entry(properties, body)
       ]
     }
     // else
@@ -387,7 +380,6 @@
     new-body = [
       #underline([#cap-line#new-body#cap-line], stroke: properties.stroke, offset: -top)
       <inline-note>
-      #_note-outline-entry(properties, body)
     ]
     new-body
   }
@@ -471,7 +463,6 @@
   box[
     #place(path(stroke: props.stroke, ..path-pts))
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
-    #_note-outline-entry(props, body)
   ]
   _update-descent("right", dy, anchor-y, note-rect, here().page())
 }
@@ -502,7 +493,6 @@
   box[
     #place(path(stroke: props.stroke, ..path-pts))
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
-    #_note-outline-entry(props, body)
   ]
   _update-descent("left", dy, anchor-y, note-rect, here().page())
 }
