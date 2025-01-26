@@ -1,3 +1,4 @@
+
 /// Default properties for margin notes. These can be overridden per function call, or
 /// globally by calling `set-margin-note-defaults`. Available options are:
 /// - `margin-right` (length): Size of the right margin
@@ -19,6 +20,7 @@
 /// - `hidden` (bool): Whether to hide the margin note. This is useful for temporarily
 ///   disabling margin notes without removing them from the code
 /// - `caret-height` (length): Size of the caret from the text baseline
+/// -> dictionary
 #let margin-note-defaults = state(
   "margin-note-defaults",
   (
@@ -61,34 +63,36 @@
 }
 
 
-/// Add a series of evenly spaced x- any y-axis lines to the page.
-///
-/// - dx (length): Horizontal offset from the top left corner of the page
-/// - dy (length): Vertical offset from the top left corner of the page
-/// - stroke (paint): Stroke to use for the grid lines. The `paint` of this stroke will
-///   determine the text color.
-/// - width (length): Total width of the grid
-/// - height (length): Total height of the grid
-/// - spacing (length, array): Spacing between grid lines. If an array is provided, the
-///   values are taken in (x, y) order. Cannot be provided alongside `divisions`.
-/// - divisions (int, array): Number of divisions along each axis. If an array is
-///   provided, the values are taken in (x, y) order. Cannot be provided alongside
-///   `spacing`.
-/// - square (bool): Whether to make the grid square. If `true`, and either `divisions`
-///   or `spacing` is provided, the smaller of the two values will be used for both axes
-///   to ensure each grid cell is square.
-/// - relative (bool): If `true` (default), the grid will be placed relative to the
-///   current container. If `false`, the grid will be placed relative to the top left
-///   corner of the page.
+/// Add a series of evenly spaced x- any y-axis lines to the page. -> content
 #let rule-grid(
+  /// Horizontal offset from the top left corner of the page -> length
   dx: 0pt,
+  /// Vertical offset from the top left corner of the page -> length
   dy: 0pt,
+  /// Stroke to use for the grid lines. The `paint` of this stroke will determine the
+  /// text color.
+  /// -> paint
   stroke: black,
+  /// Total width of the grid -> length
   width: 100cm,
+  /// Total height of the grid -> length
   height: 100cm,
+  /// Spacing between grid lines. If an array is provided, the values are taken in (x, y)
+  /// order. Cannot be provided alongside `divisions`.
+  /// -> length, array
   spacing: none,
+  /// Number of divisions along each axis. If an array is provided, the values are taken
+  /// in (x, y) order. Cannot be provided alongside `spacing`.
+  /// -> int, array
   divisions: none,
+  /// Whether to make the grid square. If `true`, and either `divisions` or `spacing` is
+  /// provided, the smaller of the two values will be used for both axes to ensure each
+  /// grid cell is square.
+  /// -> bool
   square: false,
+  /// If `true` (default), the grid will be placed relative to the current container. If
+  /// `false`, the grid will be placed relative to the top left corner of the page.
+  /// -> bool
   relative: true,
 ) = {
   // Unfortunately an int cannot be constructed from a length, so get it through a
@@ -167,6 +171,7 @@
 
 /// Changes the default properties for margin notes. See documentation on
 /// `margin-note-defaults` for available options.
+/// -> any
 #let set-margin-note-defaults(..defaults) = {
   defaults = defaults.named()
   margin-note-defaults.update(old => {
@@ -176,13 +181,25 @@
     if (old + defaults).len() != old.len() {
       let allowed-keys = array(old.keys())
       let violators = array(defaults.keys()).filter(key => key not in allowed-keys)
-      panic("margin-note-defaults can only contain the following keys: " + allowed-keys.join(", ") + ". Got: " + violators.join(", "))
+      panic(
+        "margin-note-defaults can only contain the following keys: "
+          + allowed-keys.join(", ")
+          + ". Got: "
+          + violators.join(", "),
+      )
     }
     old + defaults
   })
 }
 
-#let place-margin-rects(padding: 1%, ..rect-kwargs) = {
+/// Place a rectangle in the margin of the page. Useful for debugging spacing.
+/// -> content
+#let place-margin-rects(
+  /// amount of padding to add to the left and right of the rectangles -> length
+  padding: 1%,
+  /// Additional properties to apply to the rectangles -> any
+  ..rect-kwargs,
+) = {
   let rect-kwargs = rect-kwargs.named()
   if "height" not in rect-kwargs {
     rect-kwargs.insert("height", 100%)
@@ -202,9 +219,23 @@
 
 /// get direction of text based on defaults for the language
 /// https://github.com/typst/typst/blob/521ceae889f15f2a93683ab776cd86a423e5dbed/crates/typst-library/src/text/lang.rs#L109
+/// -> text-direction
 #let text-direction(dir, lang) = if dir == auto {
-  if lang in (
-    "ar", "dv", "fa", "he", "ks", "pa", "ps", "sd", "ug", "ur", "yi",
+  if (
+    lang
+      in (
+        "ar",
+        "dv",
+        "fa",
+        "he",
+        "ks",
+        "pa",
+        "ps",
+        "sd",
+        "ug",
+        "ur",
+        "yi",
+      )
   ) { rtl } else { ltr }
 } else {
   dir
@@ -233,16 +264,28 @@
 
   if (page.width, page.height) == (auto, auto) {
     if ("right" in margin.keys() and auto in (margin.left, margin.right)) {
-      panic("If the page width *and* height are set to `auto`, neither left nor right margin" + " can be `auto`. Got (left, right) margin " + repr((
-      margin.left,
-      margin.right,
-      )) + ", and page (width, height) " + repr((page.width, page.height)))
+      panic(
+        "If the page width *and* height are set to `auto`, neither left nor right margin"
+          + " can be `auto`. Got (left, right) margin "
+          + repr((
+            margin.left,
+            margin.right,
+          ))
+          + ", and page (width, height) "
+          + repr((page.width, page.height)),
+      )
     }
     if ("inside" in margin.keys() and auto in (margin.inside, margin.outside)) {
-      panic("If the page width *and* height are set to `auto`, neither inside nor outside margin" + " can be `auto`. Got (inside, outside) margin " + repr((
-        margin.inside,
-        margin.outside,
-      )) + ", and page (width, height) " + repr((page.width, page.height)))
+      panic(
+        "If the page width *and* height are set to `auto`, neither inside nor outside margin"
+          + " can be `auto`. Got (inside, outside) margin "
+          + repr((
+            margin.inside,
+            margin.outside,
+          ))
+          + ", and page (width, height) "
+          + repr((page.width, page.height)),
+      )
     }
   }
   // https://github.com/typst/typst/issues/3636#issuecomment-1992541661
@@ -293,12 +336,15 @@
   }
 }
 
-/// Show an outline of all notes
-///
-/// - title (string): Title of the outline
-/// - level (int): Level of the heading
-/// - row-gutter (relative): Spacing between outline elements
-#let note-outline(title: "List of Notes", level: 1, row-gutter: 10pt) = context {
+/// Show an outline of all notes -> content
+#let note-outline(
+  /// Title of the outline -> string
+  title: "List of Notes",
+  /// Level of the heading -> number
+  level: 1,
+  /// Spacing between outline elements  -> relative
+  row-gutter: 10pt,
+) = context {
   heading(level: level, title)
 
   let notes = query(selector(<margin-note>).or(<inline-note>)).map(note => {
@@ -319,11 +365,11 @@
             black + .5pt
           },
           width: 1em - 2pt,
-          height: 1em - 2pt
+          height: 1em - 2pt,
         ),
         [#note.body #box(width: 1fr, repeat[.])],
-        [#note.location().page()]
-      )
+        [#note.location().page()],
+      ),
     )
   })
 
@@ -334,13 +380,18 @@
 }
 
 /// Place a note inline with the text body.
-///
-/// - body (content): Margin note contents, usually text
-/// - par-break (bool): Whether to break the paragraph after the note, which places
-///   the note on its own line.
-/// - ..kwargs (dictionary): Additional properties to apply to the note.
-///
-#let inline-note(body, par-break: true, ..kwargs) = {
+/// -> content
+#let inline-note(
+  /// Margin note contents, usually text -> content
+  body,
+  /// Whether to break the paragraph after the note, which places the note on its own line.
+  /// -> bool
+  par-break: true,
+  /// Additional properties to apply to the note. Accepted values are keys from
+  /// `margin-note-defaults`.
+  /// -> any
+  ..kwargs,
+) = {
   context {
     let properties = margin-note-defaults.get() + kwargs.named()
     if properties.hidden {
@@ -450,7 +501,7 @@
     (0pt, props.caret-height + text-offset),
     (dist-to-margin, 0pt),
     (0pt, dy),
-    (1*pct + right-width / 2, 0pt)
+    (1 * pct + right-width / 2, 0pt),
   )
   dy += text-offset
   let note-rect = props.at("rect")(
@@ -497,13 +548,19 @@
   _update-descent("left", dy, anchor-y, note-rect, here().page())
 }
 
-/// Places a boxed note in the left or right page margin.
-///
-/// - body (content): Margin note contents, usually text
-/// - dy (length): Vertical offset from the note's location -- negative values
-///   move the note up, positive values move the note down
-/// - ..kwargs (dictionary): Additional properties to apply to the note. Accepted values are keys from `margin-note-defaults`.
-#let margin-note(body, dy: auto, ..kwargs) = [ #h(0pt) #{ // h(0pt) forces here().position() to take paragraph indent into account
+/// Places a boxed note in the left or right page margin. -> content
+#let margin-note(
+  /// Margin note contents, usually text -> content
+  body,
+  /// Vertical offset from the note's location -- negative values move the note up, positive values move the note down
+  /// -> length
+  dy: auto,
+  /// Additional properties to apply to the note. Accepted values are keys from `margin-note-defaults`.
+  /// -> any
+  ..kwargs,
+) = {
+  // h(0pt) forces here().position() to take paragraph indent into account
+  h(0pt)
   let phrase = none
   if kwargs.pos().len() > 0 {
     (phrase, body) = (body, kwargs.pos().at(0))
@@ -513,9 +570,13 @@
   }
   context {
     let defaults = margin-note-defaults.get()
-    if defaults.page-width == none or (
-      none in (defaults.margin-left, defaults.margin-right) and
-      none in (defaults.margin-inside, defaults.margin-outside)) {
+    if (
+      defaults.page-width == none
+        or (
+          none in (defaults.margin-left, defaults.margin-right)
+            and none in (defaults.margin-inside, defaults.margin-outside)
+        )
+    ) {
       // `box` allows this call to be in the same paragraph context as the noted text
       show: box
       set-page-properties()
@@ -566,7 +627,9 @@
       // onto the next line and invalidate the calculated distance.
       // A hacky fix is to manually replace the x position to an offset of 0.
 
-      let is-end-of-line = calc.abs(anchor-x - properties.margin-left - properties.page-width - properties.page-offset-x) < 0.1pt
+      let is-end-of-line = (
+        calc.abs(anchor-x - properties.margin-left - properties.page-width - properties.page-offset-x) < 0.1pt
+      )
       if is-end-of-line {
         anchor-x -= properties.page-width
       }
@@ -577,12 +640,6 @@
     } else {
       _margin-note-left
     }
-    margin-func(
-      body,
-      dy,
-      anchor-x,
-      anchor-y,
-      ..properties,
-    )
+    margin-func(body, dy, anchor-x, anchor-y, ..properties)
   }
-}]
+}
