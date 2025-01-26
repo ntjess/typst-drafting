@@ -336,6 +336,20 @@
   }
 }
 
+#let _get-note-outline-props(note) = {
+  let func = note.func()
+  let defaults = margin-note-defaults.get()
+  // styled types from custom notes have unknown fill/stroke/body
+  // TODO: Maybe a better way to signify "unknown"?
+  let props = (
+    fill: note.at("fill", default: defaults.fill),
+    stroke: note.at("stroke", default: defaults.stroke),
+    body: note.at("body", default: "<body text unkonwn>"),
+  )
+
+  return props
+}
+
 /// Show an outline of all notes -> content
 #let note-outline(
   /// Title of the outline -> string
@@ -349,6 +363,8 @@
 
   let notes = query(selector(<margin-note>).or(<inline-note>)).map(note => {
     show: box // do not break entries across pages
+    let note-props = _get-note-outline-props(note)
+    let paint = stroke(note-props.stroke).paint
     link(
       note.location().position(),
       grid(
@@ -356,18 +372,18 @@
         column-gutter: 5pt,
         align: (top, bottom, bottom),
         box(
-          fill: note.fill,
-          stroke: if note.stroke == none {
+          fill: note-props.fill,
+          stroke: if note-props.stroke == none {
             none
-          } else if note.stroke.paint != note.fill {
-            note.stroke.paint
+          } else if paint != note-props.fill {
+            paint
           } else {
             black + .5pt
           },
           width: 1em - 2pt,
           height: 1em - 2pt,
         ),
-        [#note.body #box(width: 1fr, repeat[.])],
+        [#note-props.body #box(width: 1fr, repeat[.])],
         [#note.location().page()],
       ),
     )
