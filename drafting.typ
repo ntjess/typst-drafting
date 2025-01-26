@@ -298,7 +298,7 @@
 /// - title (string): Title of the outline
 /// - level (int): Level of the heading
 /// - row-gutter (relative): Spacing between outline elements
-#let note-outline(title: "List of Todos", level: 1, row-gutter: 10pt) = context {
+#let note-outline(title: "List of Notes", level: 1, row-gutter: 10pt) = context {
   heading(level: level, title)
 
   let notes = query(selector(<margin-note>).or(<inline-note>)).map(note => {
