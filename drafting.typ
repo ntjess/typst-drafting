@@ -1,3 +1,4 @@
+#import "@preview/t4t:0.4.1": get
 
 /// Default properties for margin notes. These can be overridden per function call, or
 /// globally by calling `set-margin-note-defaults`. Available options are:
@@ -344,7 +345,8 @@
   let props = (
     fill: note.at("fill", default: defaults.fill),
     stroke: note.at("stroke", default: defaults.stroke),
-    body: note.at("body", default: "<body text unkonwn>"),
+    // if we do not use get.text formatting is included (font size, color, footnotes, etc.)
+    body: get.text(note.at("body", default: "<body text unkonwn>"), sep: " ").trim(),
   )
 
   return props
@@ -364,7 +366,7 @@
   let notes = query(selector(<margin-note>).or(<inline-note>)).map(note => {
     show: box // do not break entries across pages
     let note-props = _get-note-outline-props(note)
-    let paint = stroke(note-props.stroke).paint
+    let paint = if note-props.stroke != none { stroke(note-props.stroke).paint } else { none }
     link(
       note.location().position(),
       grid(
