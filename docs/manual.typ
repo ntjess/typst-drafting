@@ -1,7 +1,7 @@
-#import "@preview/tidy:0.3.0"
+#import "@preview/tidy:0.4.1"
 #import "utils.typ": *
 #import "../drafting.typ"
-#let module = tidy.parse-module(read("../drafting.typ"), scope: (drafting: drafting))
+#let module = tidy.parse-module(read("../drafting.typ"), scope: (drafting: drafting, ..dictionary(drafting)))
 
 // Inspiration: https://github.com/typst/packages/blob/main/packages/preview/cetz/0.1.0/manual.typ
 // This is a wrapper around typst-doc show-module that
@@ -10,7 +10,15 @@
 // needed.
 #let show-module-fn(module, fn, ..args) = {
   module.functions = module.functions.filter(f => f.name == fn)
-  tidy.show-module(module, ..args.pos(), ..args.named(), show-module-name: false, enable-cross-references: false)
+  module.variables = module.variables.filter(v => v.name == fn)
+  tidy.show-module(
+    module,
+    ..args.pos(),
+    ..args.named(),
+    show-module-name: false,
+    show-outline: false,
+    enable-cross-references: false,
+  )
 }
 
 #show raw.where(lang: "standalone"): text => {
@@ -30,9 +38,6 @@
   set text(font: "Libertinus Serif")
   example-with-source(content.text, drafting: drafting)
 }
-
-#let show-mod-old = show-module-fn
-#let show-module-fn = show-mod-old.with(first-heading-level: 0)
 
 #show-module-fn(module, "margin-note-defaults")
 

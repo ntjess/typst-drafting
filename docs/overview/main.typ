@@ -16,12 +16,11 @@
   )
   show <example-output>: set text(font: "Libertinus Serif")
 
-  showman
-    .formatter
-    .template(
+  showman.formatter.template(
     // theme: "dark",
     eval-kwargs: (direction: ttb, scope: (drafting: drafting), unpack-modules: true),
-    doc
+    runnable-langs: ("example", "standalone"),
+    doc,
   )
 }
 #show: template
@@ -54,8 +53,8 @@ Margin notes cannot lay themselves out correctly until they know your page size 
 #lorem(25)
 #margin-note(stroke: green, side: left)[You can provide two positional arguments if you want to highlight a phrase associated with your note.][The first is text which should be inline-noted, and the second is the standard margin note.]
 
-#let caution-rect = rect.with(inset: 1em, radius: 0.5em, fill: orange.lighten(80%))
-#inline-note(rect: caution-rect)[
+#let caution-rect = rect.with(inset: 1em, radius: 0.5em)
+#inline-note(rect: caution-rect, fill: orange.lighten(80%))[
   Be aware that `typst` will complain when 4 notes overlap, and stop automatically avoiding collisions when 5 or more notes
   overlap. This is because the compiler stops attempting to reposition notes after a few attempts
   (initial layout + adjustment for each note).
@@ -128,7 +127,10 @@ Even deeper customization is possible by overriding the default `rect`:
 #set-margin-note-defaults(hidden: false)
 ```
 
-// #set page(margin: (left: 0.8in, right: 0.8in))
+= Outline of all notes
+```example
+#note-outline()
+```
 
 = Positioning
 == Precise placement: rule grid
