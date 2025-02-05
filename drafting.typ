@@ -104,10 +104,10 @@
   if spacing != none and divisions != none {
     panic("Only one of `spacing` or `divisions` can be specified")
   }
-  if divisions != none and type(divisions) != "array" {
+  if divisions != none and type(divisions) != array {
     divisions = (divisions, divisions)
   }
-  if spacing != none and type(spacing) != "array" {
+  if spacing != none and type(spacing) != array {
     spacing = (spacing, spacing)
   }
 
@@ -176,7 +176,7 @@
 #let set-margin-note-defaults(..defaults) = {
   defaults = defaults.named()
   margin-note-defaults.update(old => {
-    if type(old) != "dictionary" {
+    if type(old) != dictionary {
       panic("margin-note-defaults must be a dictionary")
     }
     if (old + defaults).len() != old.len() {
