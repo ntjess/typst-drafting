@@ -22,13 +22,11 @@ You should see `readme.md` update, and you can verify the images look good.
     git add .
     git commit -m "Update readme for release"
     ```
--  Tag the repo with the new version:
+- Create a PR branch to `typst-drafting`
+-  Push the updates to this branch
+-  Once the PR is merged, tag the main repo head with the new version:
     ```sh
     git tag vX.Y.Z
-    ```
--  Push the code and tag to GitHub:
-    ```sh
-    git push
     git push --tags
     ```
 
@@ -48,4 +46,4 @@ You should see `readme.md` update, and you can verify the images look good.
 
 - Submit a PR upstream to typst/packages
 
-:tada: You're done! The new release should be available in the Typst universe.
+🎉 You're done! The new release should be available in the Typst universe.
