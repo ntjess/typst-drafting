@@ -42,7 +42,7 @@ if desired:
   You can manually adjust the position of notes with `dy` to silence the warning.
 ]
 ```
-![Example 1](assets/example-1.png)
+![Example 1](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-1.png)
 
 ## Adjusting the default style
 
@@ -56,7 +56,7 @@ state:
 #margin-note[Updated style]
 #lorem(10)
 ```
-![Example 2](assets/example-2.png)
+![Example 2](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-2.png)
 
 Even deeper customization is possible by overriding the default `rect`:
 
@@ -75,7 +75,7 @@ Even deeper customization is possible by overriding the default `rect`:
 // Undo changes from this example
 #set-margin-note-defaults(rect: rect, stroke: red)
 ```
-![Example 3](assets/example-3.png)
+![Example 3](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-3.png)
 
 ## Multiple document reviewers
 
@@ -88,7 +88,7 @@ Even deeper customization is possible by overriding the default `rect`:
 #reviewer-b(side: left)[Reviewer B comment]
 #lorem(10)
 ```
-![Example 4](assets/example-4.png)
+![Example 4](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-4.png)
 
 ## Inline Notes
 
@@ -101,7 +101,7 @@ Even deeper customization is possible by overriding the default `rect`:
 ]
 #lorem(10)
 ```
-![Example 5](assets/example-5.png)
+![Example 5](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-5.png)
 
 ## Hiding notes for print preview
 
@@ -114,14 +114,14 @@ Even deeper customization is possible by overriding the default `rect`:
 // Undo these changes
 #set-margin-note-defaults(hidden: false)
 ```
-![Example 6](assets/example-6.png)
+![Example 6](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-6.png)
 
 # Outline of all notes
 
 ``` typst
 #note-outline()
 ```
-![Example 7](assets/example-7.png)
+![Example 7](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-7.png)
 
 # Positioning
 
@@ -145,7 +145,7 @@ Need to measure space for fine-tuned positioning? You can use
 // The rule grid doesn't take up space, so add it explicitly
 #v(3cm + 1em)
 ```
-![Example 8](assets/example-8.png)
+![Example 8](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-8.png)
 
 ## Absolute positioning
 
@@ -173,7 +173,7 @@ anywhere:
 }
 #v(0.5in)
 ```
-![Example 9](assets/example-9.png)
+![Example 9](https://www.github.com/ntjess/typst-drafting/raw/v0.2.2/assets/example-9.png)
 
 The “rule-grid” also supports absolute placement at the top-left of the
 page by passing `relative: false`. This is helpful for “rule“-ing the

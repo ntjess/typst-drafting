@@ -1,4 +1,3 @@
-#import "@preview/t4t:0.4.1": get
 
 /// Default properties for margin notes. These can be overridden per function call, or
 /// globally by calling `set-margin-note-defaults`. Available options are:
@@ -337,6 +336,31 @@
   }
 }
 
+
+// Credit: copied from t4t package to avoid required dependency
+#let get-text(element, sep: "") = {
+  if type(element) == "content" {
+    if element.has("text") {
+      element.text
+    } else if element.has("children") {
+      element.children.map(get-text).join(sep)
+    } else if element.has("child") {
+      get-text(element.child)
+    } else if element.has("body") {
+      get-text(element.body)
+    } else if repr(element.func()) == "space" {
+      " "
+    } else {
+      ""
+    }
+  } else if type(element) in ("array", "dictionary") {
+    return ""
+  } else {
+    str(element)
+  }
+}
+
+
 #let _get-note-outline-props(note) = {
   let func = note.func()
   let defaults = margin-note-defaults.get()
@@ -345,8 +369,8 @@
   let props = (
     fill: note.at("fill", default: defaults.fill),
     stroke: note.at("stroke", default: defaults.stroke),
-    // if we do not use get.text formatting is included (font size, color, footnotes, etc.)
-    body: get.text(note.at("body", default: "<body text unkonwn>"), sep: " ").trim(),
+    // if we do not use get-text formatting is included (font size, color, footnotes, etc.)
+    body: get-text(note.at("body", default: "<body text unkonwn>"), sep: " ").trim(),
   )
 
   return props
