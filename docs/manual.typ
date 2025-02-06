@@ -63,4 +63,10 @@
 #lorem(6)
 ```
 
+#show-module-fn(module, "note-outline")
+```example
+// Will show all (unhidden) notes in this manual
+#note-outline()
+```
+
 #show-module-fn(module, "rule-grid")
