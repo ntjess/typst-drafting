@@ -1,6 +1,6 @@
 [package]
 name = "drafting"
-version = "0.2.1"
+version = "0.2.2"
 entrypoint = "drafting.typ"
 authors = ["Nathan Jessurun", "Jens Tinggaard <@Tinggaard>"]
 license = "Unlicense"
