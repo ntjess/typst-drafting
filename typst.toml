@@ -16,7 +16,7 @@ keywords = [
   "todo",
 ]
 categories = ["layout", "utility"]
-compiler = "0.12.0"
+compiler = "0.13.0"
 
 [tool.packager]
 paths = ["drafting.typ", "LICENSE", "README.md"]
