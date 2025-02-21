@@ -339,7 +339,7 @@
 
 // Credit: copied from t4t package to avoid required dependency
 #let get-text(element, sep: "") = {
-  if type(element) == "content" {
+  if type(element) == content {
     if element.has("text") {
       element.text
     } else if element.has("children") {
@@ -353,7 +353,7 @@
     } else {
       ""
     }
-  } else if type(element) in ("array", "dictionary") {
+  } else if type(element) in (array, dictionary) {
     return ""
   } else {
     str(element)
@@ -536,7 +536,7 @@
   let text-offset = 0.5em
   let right-width = props.margin-right - 4 * pct
 
-  let path-pts = _path-from-diffs(
+  let path-pts = (
     // make an upward line before coming back down to go all the way to
     // the top of the lettering
     (0pt, -props.caret-height),
@@ -553,8 +553,9 @@
     body,
   )
   // Boxing prevents forced paragraph breaks
+  let moves = path-pts.map(pt => curve.line(pt, relative: true))
   box[
-    #place(path(stroke: props.stroke, ..path-pts))
+    #place(curve(stroke: props.stroke, ..moves))
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
   ]
   _update-descent("right", dy, anchor-y, note-rect, here().page())
@@ -567,7 +568,7 @@
   let dist-to-margin = -anchor-x + 1 * pct
   let text-offset = 0.4em
   let box-width = props.margin-left - 4 * pct
-  let path-pts = _path-from-diffs(
+  let path-pts = (
     (0pt, -props.caret-height),
     (0pt, props.caret-height + text-offset),
     (-anchor-x + props.margin-left + 1 * pct, 0pt),
@@ -583,8 +584,9 @@
     body,
   )
   // Boxing prevents forced paragraph breaks
+  let moves = path-pts.map(pt => curve.line(pt, relative: true))
   box[
-    #place(path(stroke: props.stroke, ..path-pts))
+    #place(curve(stroke: props.stroke, ..moves))
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
   ]
   _update-descent("left", dy, anchor-y, note-rect, here().page())

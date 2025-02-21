@@ -6,7 +6,7 @@
 recommended approach is to import it from the `preview` namespace:
 
 ``` typst
-#import "@preview/drafting:0.2.1"
+#import "@preview/drafting:0.2.2"
 ```
 
 Margin notes cannot lay themselves out correctly until they know your

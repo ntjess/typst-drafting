@@ -1,7 +1,9 @@
 #import "@preview/showman:0.1.2"
 #import "/drafting.typ" as drafting
 
-#let pkg-version = "0.2.1"
+// TODO: Can't find how to tell pandoc the --root is at /, so it doesn't have access to typst.toml
+#let pkg-version = "0.2.2"
+// #let pkg-version = toml("/typst.toml").at("package").at("version")
 
 #let template(doc) = {
   show link: it => {
@@ -15,6 +17,7 @@
     height: auto,
   )
   show <example-output>: set text(font: "Libertinus Serif")
+  drafting.set-page-properties()
 
   showman.formatter.template(
     // theme: "dark",
