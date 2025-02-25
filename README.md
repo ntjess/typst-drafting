@@ -64,8 +64,10 @@ Even deeper customization is possible by overriding the default `rect`:
 #import "@preview/colorful-boxes:1.1.0": stickybox
 
 #let default-rect(stroke: none, fill: none, width: 0pt, content) = {
-  set text(0.9em)
-  stickybox(rotation: 30deg, width: width/1.5, content)
+  stickybox(rotation: 30deg, width: width/1.5)[
+    #set text(0.9em)
+    #content
+  ]
 }
 #set-margin-note-defaults(rect: default-rect, stroke: none, side: right)
 
