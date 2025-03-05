@@ -1,4 +1,3 @@
-
 /// Default properties for margin notes. These can be overridden per function call, or
 /// globally by calling `set-margin-note-defaults`. Available options are:
 /// - `margin-right` (length): Size of the right margin
@@ -6,8 +5,8 @@
 /// - `margin-inside` (length): Size of the inside margin
 /// - `margin-outside` (length): Size of the outside margin
 /// - `page-binding` (auto | alignment): Where the page is bound
-/// - `page-width` (length): Width of the page/container. This is automatically
-///   inferrable when using `set-page-properties`
+/// - `page-width` (length): Width of the page minus the margins.
+///    This is automatically inferrable when using `set-page-properties`
 /// - `page-offset-x` (length): Horizontal offset of the page/container. This is
 ///   generally only useful if margin notes are applied inside a box/rect; at the page
 ///   level this can remain unspecified
@@ -315,24 +314,28 @@
   show: place // Avoid extra whitespace
   context {
     let kwargs = kwargs.named()
-    layout(size => {
-      let margins = _get-margins()
+    let margins = _get-margins()
 
-      let binding = if page.binding == auto {
-        if text-direction(text.dir, text.lang) == ltr {
-          left
-        } else { right }
-      } else {
-        page.binding
-      }
+    let binding = if page.binding == auto {
+      if text-direction(text.dir, text.lang) == ltr {
+        left
+      } else { right }
+    } else {
+      page.binding
+    }
 
-      set-margin-note-defaults(
-        ..margins,
-        page-width: size.width,
-        page-binding: binding,
-        ..kwargs,
-      )
-    })
+    let combined-margin-w = if margins.margin-left != none {
+      margins.margin-left + margins.margin-right
+    } else {
+      margins.margin-inside + margins.margin-outside
+    }
+
+    set-margin-note-defaults(
+      ..margins,
+      page-width: page.width - combined-margin-w,
+      page-binding: binding,
+      ..kwargs,
+    )
   }
 }
 
