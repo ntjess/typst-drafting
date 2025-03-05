@@ -309,16 +309,14 @@
 }
 
 #let _update-descent(side, dy, anchor-y, note-rect, page-number) = context {
-  style(styles => {
-    let height = measure(note-rect, styles).height
-    let dy = measure(v(dy + height), styles).height + anchor-y
+    let height = measure(note-rect).height
+    let dy = measure(v(dy + height)).height + anchor-y
     note-descent.update(old => {
       let (cnt, props) = _get-current-descent(old, page-number: page-number)
       props.insert(side, calc.max(dy, props.at(side)))
       old.insert(cnt, props)
       old
     })
-  })
 }
 
 #let _margin-note-right(body, dy, anchor-x, anchor-y, ..props) = {
@@ -401,7 +399,7 @@
 
     // If properties.side is auto, place out if this note in the margin it is closest to
     if properties.side == auto {
-      properties.side = if pos.x > properties.page-width/2 {right} else {left}
+      properties.side = if pos.x > (properties.page-width + properties.margin-left + properties.margin-right)/2 {right} else {left}
     }
     for k in ("margin-right", "margin-left", "page-width") {
       if k not in properties or properties.at(k) == none {
