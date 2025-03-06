@@ -30,3 +30,8 @@
 = Inside on left
 == Unspecified side = largest = left
 #body
+
+#set page(margin: 2in)
+#set-page-properties()
+= Margin is `length`
+#body
