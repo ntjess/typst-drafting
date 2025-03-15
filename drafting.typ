@@ -640,13 +640,14 @@
 
     // Overwrite the properties for left / right margins
     // This way we only need to calculate this once
-    if page.margin != auto and "inside" in page.margin.keys() {
+    let m = _get-margins()
+    if m.margin-inside != none {
       if calc.odd(pos.page) == (properties.page-binding == left) {
-        properties.at("margin-left") = properties.margin-inside
-        properties.at("margin-right") = properties.margin-outside
+        properties.at("margin-left") = m.margin-inside
+        properties.at("margin-right") = m.margin-outside
       } else {
-        properties.at("margin-left") = properties.margin-outside
-        properties.at("margin-right") = properties.margin-inside
+        properties.at("margin-left") = m.margin-outside
+        properties.at("margin-right") = m.margin-inside
       }
     }
 
