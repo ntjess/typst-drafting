@@ -613,7 +613,8 @@
     (phrase, body) = (body, kwargs.pos().at(0))
   }
   if phrase != none {
-    inline-note(phrase, par-break: false, ..kwargs.named())
+    let boxy-content = phrase.func() in (table, figure, grid, box, block)
+    inline-note(phrase, par-break: boxy-content, ..kwargs.named())
   }
   context {
     let defaults = margin-note-defaults.get()
