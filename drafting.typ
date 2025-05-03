@@ -21,6 +21,9 @@
 /// - `caret-height` (length): Size of the caret from the text baseline
 /// - `link` ("line" | "index"): Whether to link the origin of the note to the note
 ///   margin itself with a link or with an index.
+/// - `inline-numbering` (numbering | auto): The numbering shown in the text inlined.
+///   Doesn't do anything unless `link` is set to `"index"`
+/// - `note-numbering` (numbering | auto): The numbering shown in the margin note.
 /// -> dictionary
 #let margin-note-defaults = state(
   "margin-note-defaults",
@@ -39,6 +42,8 @@
     hidden: false,
     caret-height: 1em,
     link: "line",
+    inline-numbering: auto,
+    note-numbering: auto,
  )
 )
 #let note-descent = state("note-descent", (:))
@@ -535,6 +540,8 @@
   }
 }
 
+#let margin-note-counter = counter("margin-notes")
+
 #let _margin-note-right(body, dy, anchor-x, anchor-y, ..props) = {
   props = props.named()
   let pct = _get-page-pct(props)
@@ -559,18 +566,15 @@
     dy += text-offset
     place(curve(stroke: props.stroke, ..moves))
   } else {
-    let text = counter(<margin-note>).display(i => text(
-      fill: props.stroke,
-      super([*\[#(i + 1)\]*]),
-    ))
+    let numbering = if props.inline-numbering == auto {
+      i => super([*\[#i\]*])
+    } else {
+      props.inline-numbering
+    }
 
     // TODO: It would be nice to maybe link to the note here, but I don't
     // know how to get its location from here.
-    text
-  }
-
-  if props.link == "index" {
-    body = counter(<margin-note>).display(i => [*#(i + 1)*: ]) + body
+    text(fill: props.stroke, margin-note-counter.display(numbering))
   }
 
   let note-rect = (props.rect)(
@@ -594,30 +598,47 @@
   let dist-to-margin = -anchor-x + 1 * pct
   let text-offset = 0.4em
   let box-width = props.margin-left - 4 * pct
-  let path-pts = (
-    (0pt, -props.caret-height),
-    (0pt, props.caret-height + text-offset),
-    (-anchor-x + props.margin-left + 1 * pct, 0pt),
-    (-2 * pct, 0pt),
-    (0pt, dy),
-    (-1 * pct - box-width / 2, 0pt),
-  )
-  dy += text-offset
+
+  let link = if props.link == "line" {
+    let path-pts = (
+      (0pt, -props.caret-height),
+      (0pt, props.caret-height + text-offset),
+      (-anchor-x + props.margin-left + 1 * pct, 0pt),
+      (-2 * pct, 0pt),
+      (0pt, dy),
+      (-1 * pct - box-width / 2, 0pt),
+    )
+    dy += text-offset
+
+    // Boxing prevents forced paragraph breaks
+    let moves = path-pts.map(pt => curve.line(pt, relative: true))
+
+    place(curve(stroke: props.stroke, ..moves))
+  } else {
+    let numbering = if props.inline-numbering == auto {
+      i => super([*\[#i\]*])
+    } else {
+      props.inline-numbering
+    }
+
+    // TODO: Same as `_margin-note-right`.
+    text(fill: props.stroke, margin-note-counter.display(numbering))
+  }
+
   let note-rect = props.at("rect")(
     stroke: props.stroke,
     fill: props.fill,
     width: box-width,
     body,
   )
-  // Boxing prevents forced paragraph breaks
-  let moves = path-pts.map(pt => curve.line(pt, relative: true))
   box[
-    #place(curve(stroke: props.stroke, ..moves))
+    #link
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
   ]
   _update-descent("left", dy, anchor-y, note-rect, here().page())
 }
 
+    
 /// Places a boxed note in the left or right page margin. -> content
 #let margin-note(
   /// Margin note contents, usually text -> content
@@ -629,6 +650,7 @@
   /// -> any
   ..kwargs,
 ) = {
+  margin-note-counter.step()
   // h(0pt) forces here().position() to take paragraph indent into account
   h(0pt)
   let phrase = none
@@ -706,11 +728,19 @@
       }
     }
 
+    let note-numbering = if properties.note-numbering == auto {
+      // By default, show note numbering only when using indices to link.
+      if properties.link == "index" { i => [*#i*: ] } else { i => [] }
+    } else {
+      properties.note-numbering
+    }
+    let prefix = margin-note-counter.display(note-numbering)
+
     let margin-func = if properties.side == right {
       _margin-note-right
     } else {
       _margin-note-left
     }
-    margin-func(body, dy, anchor-x, anchor-y, ..properties)
+    margin-func(prefix + body, dy, anchor-x, anchor-y, ..properties)
   }
 }

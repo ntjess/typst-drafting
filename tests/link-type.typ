@@ -1,4 +1,3 @@
-
 #set page(margin: (x: 5cm), width: 25cm, height: 10cm)
 
 #import "../drafting.typ": *
@@ -9,10 +8,13 @@
 #lorem(40)
 #margin-note[Hello world]
 #margin-note[Stacked]
-// #margin-note[Notes]
 #lorem(40)
+
+== Custom numbering
+#set-margin-note-defaults(inline-numbering: i => [*<#i>*], note-numbering: i => [*TODO #i:* ])
 #margin-note[#lorem(18)][Yep]
-#lorem(40)
+#lorem(20)
+#set-margin-note-defaults(inline-numbering: auto, note-numbering: auto)
 
 #pagebreak()
 
@@ -22,7 +24,7 @@
 #lorem(40)
 #margin-note[Hello world]
 #margin-note[Stacked]
-// #margin-note[Notes]
+
 #lorem(40)
 #margin-note[#lorem(18)][Yep]
-#lorem(40)
+#lorem(20)
