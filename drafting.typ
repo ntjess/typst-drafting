@@ -572,8 +572,6 @@
       props.inline-numbering
     }
 
-    // TODO: It would be nice to maybe link to the note here, but I don't
-    // know how to get its location from here.
     text(fill: props.stroke, margin-note-counter.display(numbering))
   }
 
@@ -621,7 +619,6 @@
       props.inline-numbering
     }
 
-    // TODO: Same as `_margin-note-right`.
     text(fill: props.stroke, margin-note-counter.display(numbering))
   }
 

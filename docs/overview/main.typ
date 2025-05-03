@@ -135,6 +135,21 @@ Even deeper customization is possible by overriding the default `rect`:
 #note-outline()
 ```
 
+= Link with indices insted of lines
+
+```example
+#set-margin-note-defaults(link: "index")
+
+#lorem(20)
+#margin-note[This note is linked using its index]
+#margin-note[Maybe you prefer this look]
+
+
+#lorem(20)
+#set-margin-note-defaults(inline-numbering: "<1>", note-numbering: "a. ")
+#margin-note[You can also customize the numberings used]
+```
+
 = Positioning
 == Precise placement: rule grid
 Need to measure space for fine-tuned positioning? You can use `rule-grid` to cross-hatch
