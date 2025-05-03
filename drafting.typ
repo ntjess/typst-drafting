@@ -19,6 +19,8 @@
 /// - `hidden` (bool): Whether to hide the margin note. This is useful for temporarily
 ///   disabling margin notes without removing them from the code
 /// - `caret-height` (length): Size of the caret from the text baseline
+/// - `link` ("line" | "index"): Whether to link the origin of the note to the note
+///   margin itself with a link or with an index.
 /// -> dictionary
 #let margin-note-defaults = state(
   "margin-note-defaults",
@@ -36,7 +38,8 @@
     side: auto,
     hidden: false,
     caret-height: 1em,
-  ),
+    link: "line",
+ )
 )
 #let note-descent = state("note-descent", (:))
 
@@ -539,26 +542,46 @@
   let text-offset = 0.5em
   let right-width = props.margin-right - 4 * pct
 
-  let path-pts = (
-    // make an upward line before coming back down to go all the way to
-    // the top of the lettering
-    (0pt, -props.caret-height),
-    (0pt, props.caret-height + text-offset),
-    (dist-to-margin, 0pt),
-    (0pt, dy),
-    (1 * pct + right-width / 2, 0pt),
-  )
-  dy += text-offset
-  let note-rect = props.at("rect")(
+  let link = if props.link == "line" {
+    let path-pts = (
+      // make an upward line before coming back down to go all the way to
+      // the top of the lettering
+      (0pt, -props.caret-height),
+      (0pt, props.caret-height + text-offset),
+      (dist-to-margin, 0pt),
+      (0pt, dy),
+      (1 * pct + right-width / 2, 0pt),
+    )
+
+    // Boxing prevents forced paragraph breaks
+    let moves = path-pts.map(pt => curve.line(pt, relative: true))
+
+    dy += text-offset
+    place(curve(stroke: props.stroke, ..moves))
+  } else {
+    let text = counter(<margin-note>).display(i => text(
+      fill: props.stroke,
+      super([*\[#(i + 1)\]*]),
+    ))
+
+    // TODO: It would be nice to maybe link to the note here, but I don't
+    // know how to get its location from here.
+    text
+  }
+
+  if props.link == "index" {
+    body = counter(<margin-note>).display(i => [*#(i + 1)*: ]) + body
+  }
+
+  let note-rect = (props.rect)(
     stroke: props.stroke,
     fill: props.fill,
     width: right-width,
     body,
   )
-  // Boxing prevents forced paragraph breaks
-  let moves = path-pts.map(pt => curve.line(pt, relative: true))
+
   box[
-    #place(curve(stroke: props.stroke, ..moves))
+    #link
     #place(dx: dist-to-margin + 1 * pct, dy: dy, [#note-rect<margin-note>])
   ]
   _update-descent("right", dy, anchor-y, note-rect, here().page())
