@@ -373,7 +373,7 @@
     fill: note.at("fill", default: defaults.fill),
     stroke: note.at("stroke", default: defaults.stroke),
     // if we do not use get-text formatting is included (font size, color, footnotes, etc.)
-    body: get-text(note.at("body", default: "<body text unkonwn>"), sep: " ").trim(),
+    body: get-text(note.at("body", default: "<body text unkonwn>")).trim(),
   )
 
   return props
