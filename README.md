@@ -8,6 +8,19 @@ recommended approach is to import it from the `preview` namespace:
 ``` typst
 #import "@preview/drafting:0.2.2"
 ```
+To ensure package functions are usable either directly call the needed
+functions in the import statement:
+```typ
+#import "@preview/drafting:0.2.2": set-page-properties
+
+// to then call:
+#set-page-properties(margin-left: 2cm)
+```
+or pull all functions via a wildcard import:
+
+```typ
+#import "@preview/drafting:0.2.2": *
+```
 
 Margin notes cannot lay themselves out correctly until they know your
 page size and margins. By default, they occupy nearly the entirety of
