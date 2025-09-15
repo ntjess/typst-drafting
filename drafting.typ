@@ -395,8 +395,14 @@
   level: 1,
   /// Spacing between outline elements  -> relative
   row-gutter: 10pt,
+  /// Whether the outline heading should receive a number
+  number-heading: false,
 ) = context {
-  heading(level: level, title)
+  heading(
+    level: level,
+    numbering: if number-heading { none } else { heading.numbering },
+    title,
+  )
 
   let notes = query(selector(<margin-note>).or(<inline-note>)).map(note => {
     show: box // do not break entries across pages
