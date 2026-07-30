@@ -260,12 +260,12 @@
     margin.left = page.margin
     margin.right = page.margin
   } else {
-    if "right" in page.margin.keys() {
-      margin.right = page.margin.right
-      margin.left = page.margin.left
-    } else if "inside" in page.margin.keys() {
-      margin.inside = page.margin.inside
-      margin.outside = page.margin.outside
+    if "left" in page.margin.keys() or "right" in page.margin.keys() {
+      margin.left = page.margin.at("left", default: auto)
+      margin.right = page.margin.at("right", default: auto)
+    } else if "inside" in page.margin.keys() or "outside" in page.margin.keys() {
+      margin.inside = page.margin.at("inside", default: auto)
+      margin.outside = page.margin.at("outside", default: auto)
     }
   }
 
